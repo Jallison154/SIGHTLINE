@@ -1,0 +1,22 @@
+{
+  "id": "generic-moving-head-16bit",
+  "display_name": "Generic Moving Head 16-bit",
+  "manufacturer": "Generic",
+  "model": "MH-16",
+  "channel_count": 20,
+  "attributes": {
+    "pan": { "coarse": 1, "fine": 2, "invert": false },
+    "tilt": { "coarse": 3, "fine": 4, "invert": false },
+    "dimmer": { "coarse": 5 },
+    "zoom": { "coarse": 6 },
+    "iris": { "coarse": 7 },
+    "focus": { "coarse": 8 },
+    "color": { "coarse": 9 }
+  },
+  "defaults": {
+    "deadband": 0.02,
+    "smoothing_alpha": 0.25,
+    "pan_speed_scale": 1.0,
+    "tilt_speed_scale": 1.0
+  }
+}

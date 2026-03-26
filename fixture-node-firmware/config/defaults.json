@@ -1,0 +1,6 @@
+{
+  "node_name": "SIGHTLINE-Node",
+  "universe": 0,
+  "dmx_start_address": 1,
+  "ip_mode": "dhcp"
+}
