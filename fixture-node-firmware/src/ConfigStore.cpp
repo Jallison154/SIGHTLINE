@@ -12,6 +12,14 @@ bool ConfigStore::validate(const NodeConfig& config, String& outError) {
     outError = "nodeName must be 1..32 chars";
     return false;
   }
+  if (config.fixtureLabel.length() > 64) {
+    outError = "fixtureLabel max length is 64";
+    return false;
+  }
+  if (config.universe > 32767) {
+    outError = "universe must be 0..32767";
+    return false;
+  }
   if (config.dmxStartAddress == 0 || config.dmxStartAddress > 512) {
     outError = "dmxStartAddress must be 1..512";
     return false;
@@ -29,6 +37,7 @@ bool ConfigStore::load(NodeConfig& outConfig) {
 
   NodeConfig loaded;
   loaded.nodeName = prefs.getString("nodeName", loaded.nodeName);
+  loaded.fixtureLabel = prefs.getString("fixtureLabel", loaded.fixtureLabel);
   loaded.universe = prefs.getUShort("universe", loaded.universe);
   loaded.dmxStartAddress = prefs.getUShort("dmxStart", loaded.dmxStartAddress);
   loaded.dhcp = prefs.getBool("dhcp", loaded.dhcp);
@@ -60,6 +69,7 @@ bool ConfigStore::save(const NodeConfig& config) {
     return false;
   }
   prefs.putString("nodeName", config.nodeName);
+  prefs.putString("fixtureLabel", config.fixtureLabel);
   prefs.putUShort("universe", config.universe);
   prefs.putUShort("dmxStart", config.dmxStartAddress);
   prefs.putBool("dhcp", config.dhcp);

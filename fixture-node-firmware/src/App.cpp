@@ -15,7 +15,13 @@ void App::begin() {
   _status.markEthernetReady(true);
 
   _artNetReceiver.begin(_config.universe);
-  _dmxOutput.begin();
+  DmxOutputConfig dmxConfig;
+  // TODO(HW): Confirm UART index + TX + DE/RE pins for final fixture-node board.
+  dmxConfig.uartIndex = 2;
+  dmxConfig.txPin = 17;
+  dmxConfig.directionPin = -1;
+  dmxConfig.framePeriodUs = 25000;  // ~40Hz
+  _dmxOutput.begin(dmxConfig);
   _webUi.begin(_config, _configStore, _status);
   _status.markWebUiReady(true);
 }
@@ -29,11 +35,15 @@ void App::tick(uint32_t nowMs) {
 }
 
 void App::serviceArtNet(uint32_t nowMs) {
-  const bool accepted = _artNetReceiver.poll(_dmxBuffer);
-  if (_artNetReceiver.packetsSeen() > _status.current().artNetPacketsSeen) {
-    _status.onArtNetSeen(nowMs);
-  }
-  if (accepted) {
-    _status.onArtNetAccepted();
-  }
+  (void)_artNetReceiver.poll(nowMs, _dmxBuffer);
+
+  const ArtNetSignalStatus signal = _artNetReceiver.signalStatus(nowMs);
+  _status.setArtNetSignal(signal.hasSignal);
+  _status.setArtNetUniverse(signal.listenUniverse);
+  _status.setLastArtNetRxMs(signal.lastAcceptedMs);
+  _status.setArtNetLastFrameIntervalMs(signal.lastFrameIntervalMs);
+  _status.setArtNetPacketsSeen(signal.packetsSeen);
+  _status.setArtNetPacketsAccepted(signal.packetsAccepted);
+  _status.setArtNetPacketsIgnoredUniverse(signal.packetsIgnoredUniverse);
+  _status.setArtNetPacketsBad(signal.packetsBad);
 }

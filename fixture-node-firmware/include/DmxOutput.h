@@ -4,14 +4,36 @@
 
 #include "DmxBuffer.h"
 
+struct DmxOutputConfig {
+  // UART index for ESP32 HardwareSerial (commonly 1 or 2).
+  uint8_t uartIndex = 2;
+  // DMX TX output pin connected to RS-485 DI.
+  int8_t txPin = 17;
+  // Optional RE/DE pin for RS-485 transceiver direction control.
+  int8_t directionPin = -1;
+  // DMX requires 250000 baud, 8 data bits, no parity, 2 stop bits.
+  uint32_t baudRate = 250000;
+  uint32_t framePeriodUs = 25000;  // ~40Hz refresh.
+  bool keepDriverEnabled = true;
+};
+
 class DmxOutput {
  public:
-  bool begin();
+  bool begin(const DmxOutputConfig& config = DmxOutputConfig{});
   void tick(uint32_t nowMs, const DmxBuffer& source);
 
   uint32_t framesOutput() const { return _framesOutput; }
+  uint32_t lastFrameDurationUs() const { return _lastFrameDurationUs; }
 
  private:
+  void sendFrame(const DmxBuffer& source);
+  void sendBreakAndMab();
+  HardwareSerial* selectSerial(uint8_t uartIndex);
+
+  DmxOutputConfig _config;
+  HardwareSerial* _serial = nullptr;
+  uint8_t _frameBytes[513] = {0};  // start code + 512 slots
   uint32_t _lastOutputMs = 0;
   uint32_t _framesOutput = 0;
+  uint32_t _lastFrameDurationUs = 0;
 };

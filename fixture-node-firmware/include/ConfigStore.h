@@ -4,6 +4,7 @@
 
 struct NodeConfig {
   String nodeName = "SIGHTLINE-Node";
+  String fixtureLabel = "";
   uint16_t universe = 0;
   uint16_t dmxStartAddress = 1;
   bool dhcp = true;

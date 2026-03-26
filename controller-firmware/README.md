@@ -29,3 +29,20 @@ Pan/tilt motion uses velocity-based control from encoder deltas (not absolute po
 - `maxVelocityNormalizedPerSec`: safety clamp
 
 Hardware-specific encoder pin setup remains marked as `TODO(HW)` in `src/ControlInput.cpp`.
+
+## Art-Net Transmit Notes
+
+`src/ArtNetSender.cpp` provides clean Art-Net transmit separation with API:
+
+- `setChannel(channel, value)`
+- `setBuffer(data, length)`
+- `setUniverse(universe)`
+- `sendFrame()`
+
+Recommended output rates for moving lights:
+
+- `30-44 Hz` for smooth follow-spot style control
+- `40 Hz` (25ms period) is a practical default
+- `>50 Hz` is usually unnecessary network load for most fixtures
+
+Board-specific Ethernet bring-up is marked as `TODO(HW)` in `src/ArtNetSender.cpp`.

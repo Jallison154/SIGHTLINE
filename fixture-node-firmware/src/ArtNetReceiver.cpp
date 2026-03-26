@@ -1,11 +1,13 @@
 #include "ArtNetReceiver.h"
 
+#include <cstring>
 #include <WiFiUdp.h>
 
 namespace {
 constexpr uint16_t kArtNetPort = 6454;
 constexpr uint16_t kOpDmx = 0x5000;
 constexpr uint16_t kHeaderSize = 18;
+constexpr uint16_t kArtNetProtocolMin = 14;
 WiFiUDP g_udp;
 }  // namespace
 
@@ -19,16 +21,25 @@ bool ArtNetReceiver::begin(uint16_t listenUniverse) {
   return true;
 }
 
-bool ArtNetReceiver::parseAndApply(const uint8_t* packet, uint16_t length, DmxBuffer& outBuffer) {
+bool ArtNetReceiver::parseAndApply(const uint8_t* packet, uint16_t length, uint32_t nowMs, DmxBuffer& outBuffer) {
   if (!packet || length < kHeaderSize) {
+    _packetsBad++;
     return false;
   }
-  if (memcmp(packet, "Art-Net\0", 8) != 0) {
+  if (std::memcmp(packet, "Art-Net\0", 8) != 0) {
+    _packetsBad++;
     return false;
   }
 
   const uint16_t opCode = static_cast<uint16_t>(packet[8] | (packet[9] << 8));
   if (opCode != kOpDmx) {
+    // Not bad; just not ArtDMX.
+    return false;
+  }
+
+  const uint16_t protocol = static_cast<uint16_t>((packet[10] << 8) | packet[11]);
+  if (protocol < kArtNetProtocolMin) {
+    _packetsBad++;
     return false;
   }
 
@@ -39,29 +50,51 @@ bool ArtNetReceiver::parseAndApply(const uint8_t* packet, uint16_t length, DmxBu
   }
 
   const uint16_t dmxLength = static_cast<uint16_t>((packet[16] << 8) | packet[17]);
-  if (dmxLength > 512 || (kHeaderSize + dmxLength) > length) {
+  if (dmxLength == 0 || dmxLength > 512 || (dmxLength & 0x1) != 0 || (kHeaderSize + dmxLength) > length) {
+    _packetsBad++;
     return false;
   }
 
   if (!outBuffer.applyPacketData(packet + kHeaderSize, dmxLength)) {
+    _packetsBad++;
     return false;
   }
+
+  if (_packetsAccepted > 0) {
+    _lastFrameIntervalMs = nowMs - _lastAcceptedMs;
+  }
+  _lastAcceptedMs = nowMs;
   _packetsAccepted++;
   return true;
 }
 
-bool ArtNetReceiver::poll(DmxBuffer& outBuffer) {
+bool ArtNetReceiver::poll(uint32_t nowMs, DmxBuffer& outBuffer) {
   const int packetLength = g_udp.parsePacket();
   if (packetLength <= 0) {
     return false;
   }
 
-  uint8_t packet[600] = {0};
-  const int readCount = g_udp.read(packet, sizeof(packet));
+  const int readCount = g_udp.read(_packetBuffer, sizeof(_packetBuffer));
   if (readCount <= 0) {
+    _packetsBad++;
     return false;
   }
 
   _packetsSeen++;
-  return parseAndApply(packet, static_cast<uint16_t>(readCount), outBuffer);
+  _lastPacketMs = nowMs;
+  return parseAndApply(_packetBuffer, static_cast<uint16_t>(readCount), nowMs, outBuffer);
+}
+
+ArtNetSignalStatus ArtNetReceiver::signalStatus(uint32_t nowMs) const {
+  ArtNetSignalStatus out;
+  out.listenUniverse = _listenUniverse;
+  out.packetsSeen = _packetsSeen;
+  out.packetsAccepted = _packetsAccepted;
+  out.packetsIgnoredUniverse = _packetsIgnoredUniverse;
+  out.packetsBad = _packetsBad;
+  out.lastPacketMs = _lastPacketMs;
+  out.lastAcceptedMs = _lastAcceptedMs;
+  out.lastFrameIntervalMs = _lastFrameIntervalMs;
+  out.hasSignal = (_lastAcceptedMs > 0) && ((nowMs - _lastAcceptedMs) <= _lastSignalTimeoutMs);
+  return out;
 }

@@ -7,6 +7,9 @@ void App::begin() {
   _controlInput.begin();
   _profileStore.begin();
   _artNetSender.begin();
+  _artNetSender.setUniverse(_artNetUniverse);
+  // TODO(HW): Configure target Art-Net IP from user settings (broadcast vs unicast).
+  // _artNetSender.setTargetIp(IPAddress(192, 168, 1, 100));
 
   String profileError;
   if (!_profileStore.loadSelectedProfile(_activeProfile, profileError)) {
@@ -56,5 +59,6 @@ void App::transmitIfDue(uint32_t nowMs) {
   _lastTxMs = nowMs;
 
   // Universe is sent as full 512-byte frame each transmit cycle.
-  _artNetSender.sendDmx(0, _universe.data(), _universe.size());
+  _artNetSender.setBuffer(_universe.data(), _universe.size());
+  _artNetSender.sendFrame();
 }

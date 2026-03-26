@@ -32,4 +32,5 @@ class App {
   uint32_t _lastTickMs = 0;
   uint32_t _lastTxMs = 0;
   uint32_t _txPeriodMs = 25;  // 40Hz default
+  uint16_t _artNetUniverse = 0;
 };
