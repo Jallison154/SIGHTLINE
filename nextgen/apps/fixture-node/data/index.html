@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIGHTLINE Fixture Node</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="card">
+      <header>
+        <h1>SIGHTLINE Fixture Node</h1>
+        <p class="sub">Local configuration, profiles, and status.</p>
+      </header>
+
+      <section>
+        <h2>Node</h2>
+        <div class="grid">
+          <label>Node name <input id="nodeName" maxlength="32" /></label>
+          <label>Fixture label <input id="fixtureLabel" maxlength="64" /></label>
+        </div>
+
+        <h3>Network</h3>
+        <div class="grid">
+          <label>IP mode
+            <select id="ipMode">
+              <option value="dhcp">DHCP</option>
+              <option value="static">Static</option>
+            </select>
+          </label>
+          <label>Static IP <input id="staticIp" inputmode="numeric" /></label>
+          <label>Subnet mask <input id="subnetMask" inputmode="numeric" /></label>
+          <label>Gateway <input id="gateway" inputmode="numeric" /></label>
+        </div>
+
+        <div class="buttons">
+          <button id="saveCfgBtn" type="button">Save</button>
+          <button id="applyCfgBtn" type="button">Save + Apply</button>
+        </div>
+        <p id="cfgMsg"></p>
+      </section>
+
+      <section>
+        <h2>Profiles</h2>
+        <div class="grid">
+          <label>Active profile
+            <select id="activeProfile"></select>
+          </label>
+        </div>
+        <div class="buttons">
+          <button id="activateProfileBtn" type="button">Activate</button>
+        </div>
+
+        <h3>Saved profiles</h3>
+        <ul id="profilesList"></ul>
+
+        <h3>Import profile</h3>
+        <textarea id="importProfile" rows="6" placeholder="Paste profile JSON here"></textarea>
+        <div class="buttons">
+          <button id="importProfileBtn" type="button">Import</button>
+        </div>
+        <p id="profileMsg"></p>
+      </section>
+
+      <section>
+        <h2>Status</h2>
+        <div class="status-grid">
+          <div>Network</div><div id="stNetwork">-</div>
+          <div>Discovery</div><div id="stDiscovery">-</div>
+          <div>Control RX</div><div id="stControl">-</div>
+          <div>DMX Output</div><div id="stDmx">-</div>
+          <div>Claim status</div><div id="stClaim">-</div>
+          <div>Assigned controller</div><div id="stController">-</div>
+          <div>Active profile</div><div id="stProfile">-</div>
+          <div>Uptime</div><div id="stUptime">-</div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

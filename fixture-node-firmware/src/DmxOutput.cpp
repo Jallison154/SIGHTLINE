@@ -1,5 +1,6 @@
 #include "DmxOutput.h"
 
+#include <algorithm>
 #include <cstring>
 
 HardwareSerial* DmxOutput::selectSerial(uint8_t uartIndex) {
@@ -8,9 +9,16 @@ HardwareSerial* DmxOutput::selectSerial(uint8_t uartIndex) {
   return nullptr;
 }
 
+uart_port_t DmxOutput::selectUartPort(uint8_t uartIndex) {
+  if (uartIndex == 1) return UART_NUM_1;
+  if (uartIndex == 2) return UART_NUM_2;
+  return UART_NUM_MAX;
+}
+
 bool DmxOutput::begin(const DmxOutputConfig& config) {
   _config = config;
   _serial = selectSerial(_config.uartIndex);
+  _uartPort = selectUartPort(_config.uartIndex);
   if (_serial == nullptr) {
     return false;
   }
@@ -29,39 +37,73 @@ bool DmxOutput::begin(const DmxOutputConfig& config) {
   _lastOutputMs = 0;
   _framesOutput = 0;
   _lastFrameDurationUs = 0;
+  _nextFrameDueUs = micros();
+  _mabReadyUs = 0;
+  _txState = TxState::kIdle;
   return true;
 }
 
 void DmxOutput::tick(uint32_t nowMs, const DmxBuffer& source) {
-  const uint32_t kDmxFramePeriodMs = _config.framePeriodUs / 1000;
-  if ((nowMs - _lastOutputMs) < kDmxFramePeriodMs) {
+  (void)nowMs;
+  const uint32_t nowUs = micros();
+
+  if (_txState == TxState::kIdle) {
+    if (static_cast<int32_t>(nowUs - _nextFrameDueUs) < 0) {
+      return;
+    }
+
+    if (_config.directionPin >= 0 && !_config.keepDriverEnabled) {
+      digitalWrite(_config.directionPin, HIGH);
+    }
+
+    sendBreak();
+    _mabReadyUs = nowUs + _config.mabUs;
+    _txState = TxState::kWaitingMab;
     return;
   }
-  _lastOutputMs = nowMs;
-  sendFrame(source);
-  _framesOutput++;
+
+  if (_txState == TxState::kWaitingMab) {
+    if (static_cast<int32_t>(nowUs - _mabReadyUs) < 0) {
+      return;
+    }
+    sendFrameData(source);
+    _lastOutputMs = millis();
+    _framesOutput++;
+    _nextFrameDueUs = nowUs + _config.framePeriodUs;
+    _txState = TxState::kIdle;
+  }
 }
 
-void DmxOutput::sendBreakAndMab() {
-  // TODO(HW): For production, implement deterministic break/MAB using ESP-IDF UART APIs
-  // (uart_write_bytes_with_break / direct UART registers), tested on final board.
-  // Current portable fallback approximates break by temporarily lowering baud.
+void DmxOutput::sendBreak() {
+  if (_serial == nullptr) {
+    return;
+  }
   _serial->flush();
-  _serial->updateBaudRate(90000);
-  _serial->write(0x00);
-  _serial->flush();
-  _serial->updateBaudRate(_config.baudRate);
-  delayMicroseconds(12);  // Approximate Mark-After-Break (>=8us)
+
+  // Use ESP32 UART break support; avoids explicit blocking delay calls in loop.
+  // TODO(HW): Validate break length on final board/transceiver with a DMX analyzer.
+  if (_uartPort != UART_NUM_MAX) {
+    constexpr uint32_t kBreakBits = 44;  // ~176us at 250k, safely above DMX minimum.
+    uart_write_bytes_with_break(_uartPort, "", 0, kBreakBits);
+  } else {
+    // Fallback for unsupported UART selection.
+    // TODO(HW): Replace fallback with board-specific deterministic break generation.
+    _serial->updateBaudRate(90000);
+    _serial->write(0x00);
+    _serial->flush();
+    _serial->updateBaudRate(_config.baudRate);
+  }
 }
 
-void DmxOutput::sendFrame(const DmxBuffer& source) {
+void DmxOutput::sendFrameData(const DmxBuffer& source) {
+  if (_serial == nullptr) {
+    return;
+  }
   const uint32_t startUs = micros();
 
   if (_config.directionPin >= 0 && !_config.keepDriverEnabled) {
     digitalWrite(_config.directionPin, HIGH);
   }
-
-  sendBreakAndMab();
 
   std::memcpy(&_frameBytes[1], source.data(), DmxBuffer::kUniverseSize);
   _serial->write(_frameBytes, sizeof(_frameBytes));

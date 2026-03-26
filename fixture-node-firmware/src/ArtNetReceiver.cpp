@@ -74,6 +74,17 @@ bool ArtNetReceiver::poll(uint32_t nowMs, DmxBuffer& outBuffer) {
     return false;
   }
 
+  if (packetLength > static_cast<int>(sizeof(_packetBuffer))) {
+    // Drop oversized datagram to avoid parsing truncated packet contents.
+    while (g_udp.available() > 0) {
+      g_udp.read();
+    }
+    _packetsSeen++;
+    _packetsBad++;
+    _lastPacketMs = nowMs;
+    return false;
+  }
+
   const int readCount = g_udp.read(_packetBuffer, sizeof(_packetBuffer));
   if (readCount <= 0) {
     _packetsBad++;

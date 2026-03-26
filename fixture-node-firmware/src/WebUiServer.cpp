@@ -26,7 +26,7 @@ void sendStaticFallbackPage() {
                 "<p>UI assets missing. Upload SPIFFS data partition.</p></body></html>");
 }
 
-bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store) {
+bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store, bool applyNow) {
   StaticJsonDocument<768> doc;
   const String body = g_server.arg("plain");
   const DeserializationError err = deserializeJson(doc, body);
@@ -45,11 +45,13 @@ bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store) {
   if (doc.containsKey("subnetMask")) next.subnetMask = static_cast<const char*>(doc["subnetMask"]);
   if (doc.containsKey("gateway")) next.gateway = static_cast<const char*>(doc["gateway"]);
 
-  if (!store.save(next)) {
+  if (!store.savePersisted(next)) {
     g_server.send(400, "application/json", "{\"ok\":false,\"error\":\"invalid-config\"}");
     return false;
   }
-  liveConfig = next;
+  if (applyNow) {
+    store.applyToRuntime(next, liveConfig);
+  }
   return true;
 }
 }
@@ -115,14 +117,14 @@ bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const 
   });
 
   g_server.on("/api/config", HTTP_POST, [this]() {
-    if (!parseAndSaveConfigPayload(*_config, *_configStore)) {
+    if (!parseAndSaveConfigPayload(*_config, *_configStore, false)) {
       return;
     }
     g_server.send(200, "application/json", "{\"ok\":true,\"applied\":false}");
   });
 
   g_server.on("/api/config/apply", HTTP_POST, [this]() {
-    if (!parseAndSaveConfigPayload(*_config, *_configStore)) {
+    if (!parseAndSaveConfigPayload(*_config, *_configStore, true)) {
       return;
     }
     // Apply semantics: configuration is persisted and copied to live state.

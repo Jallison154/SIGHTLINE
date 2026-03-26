@@ -1,0 +1,15 @@
+{
+  "id": "beam-compact-14ch",
+  "fixture_name": "Beam Compact",
+  "manufacturer": "Example Lighting",
+  "mode_name": "14ch Standard",
+  "channel_count": 14,
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2, "invert": true },
+    "tilt": { "coarse": 3, "fine": 4 },
+    "intensity": { "channel": 5 },
+    "shutter": { "channel": 6 },
+    "color": { "channel": 7 },
+    "focus": { "channel": 8 }
+  }
+}

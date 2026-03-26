@@ -1,0 +1,20 @@
+{
+  "id": "generic-moving-head-20ch",
+  "fixture_name": "Generic Moving Head",
+  "manufacturer": "Generic",
+  "mode_name": "20ch Extended",
+  "channel_count": 20,
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2 },
+    "tilt": { "coarse": 3, "fine": 4 },
+    "intensity": { "channel": 5 },
+    "shutter": { "channel": 6 },
+    "zoom": { "channel": 7 },
+    "focus": { "channel": 8 },
+    "iris": { "channel": 9 },
+    "color": { "channel": 10 }
+  },
+  "defaults": {
+    "shutter_open": true
+  }
+}

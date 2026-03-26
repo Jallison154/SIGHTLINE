@@ -17,7 +17,9 @@ void App::begin() {
 
   _controlInput.begin();
   _profileStore.begin();
-  _artNetSender.begin();
+  if (!_artNetSender.begin()) {
+    Serial.println("ArtNetSender init failed");
+  }
   _artNetSender.setUniverse(_artNetUniverse);
   if (!_runtimeConfig.useBroadcast) {
     // TODO(HW): Add strict IPv4 parsing/validation.

@@ -17,16 +17,20 @@ void App::begin() {
   // TODO(HW): Set based on real ETH link state.
   _status.markEthernetReady(true);
 
-  _artNetReceiver.begin(_config.universe);
+  if (!_artNetReceiver.begin(_config.universe)) {
+    Serial.println("ArtNetReceiver init failed");
+  }
   DmxOutputConfig dmxConfig;
   // TODO(HW): Confirm UART index + TX + DE/RE pins for final fixture-node board.
   dmxConfig.uartIndex = 2;
   dmxConfig.txPin = 17;
   dmxConfig.directionPin = -1;
   dmxConfig.framePeriodUs = 25000;  // ~40Hz
-  _dmxOutput.begin(dmxConfig);
-  _webUi.begin(_config, _configStore, _status);
-  _status.markWebUiReady(true);
+  if (!_dmxOutput.begin(dmxConfig)) {
+    Serial.println("DmxOutput init failed");
+  }
+  const bool webOk = _webUi.begin(_config, _configStore, _status);
+  _status.markWebUiReady(webOk);
 }
 
 void App::tick(uint32_t nowMs) {
