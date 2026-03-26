@@ -1,15 +1,31 @@
 #include "App.h"
+#include <IPAddress.h>
 
 void App::begin() {
   _lastTickMs = millis();
   _lastTxMs = 0;
 
+  _configStore.begin();
+  bool usedDefaults = false;
+  if (!_configStore.loadPersisted(_persistedConfig, usedDefaults)) {
+    Serial.println("Controller config invalid/unavailable, using defaults");
+  }
+  _configStore.applyToRuntime(_persistedConfig, _runtimeConfig);
+
+  _txPeriodMs = _runtimeConfig.txPeriodMs;
+  _artNetUniverse = _runtimeConfig.artNetUniverse;
+
   _controlInput.begin();
   _profileStore.begin();
   _artNetSender.begin();
   _artNetSender.setUniverse(_artNetUniverse);
-  // TODO(HW): Configure target Art-Net IP from user settings (broadcast vs unicast).
-  // _artNetSender.setTargetIp(IPAddress(192, 168, 1, 100));
+  if (!_runtimeConfig.useBroadcast) {
+    // TODO(HW): Add strict IPv4 parsing/validation.
+    IPAddress ip;
+    if (ip.fromString(_runtimeConfig.targetIp)) {
+      _artNetSender.setTargetIp(ip);
+    }
+  }
 
   String profileError;
   if (!_profileStore.loadSelectedProfile(_activeProfile, profileError)) {
@@ -18,12 +34,12 @@ void App::begin() {
     Serial.printf("Loaded profile: %s %s [%s]\n", _activeProfile.manufacturer.c_str(),
                   _activeProfile.fixtureName.c_str(), _activeProfile.modeName.c_str());
     PanTiltTuning tuning;
-    tuning.sensitivity = 0.0012f;
-    tuning.accelerationThresholdCountsPerSec = 90.0f;
-    tuning.accelerationGain = 2.0f;
-    tuning.accelerationCurve = 1.3f;
-    tuning.velocitySmoothing = _activeProfile.smoothingAlpha;
-    tuning.maxVelocityNormalizedPerSec = 2.4f;
+    tuning.sensitivity = _runtimeConfig.sensitivity;
+    tuning.accelerationThresholdCountsPerSec = _runtimeConfig.accelerationThresholdCountsPerSec;
+    tuning.accelerationGain = _runtimeConfig.accelerationGain;
+    tuning.accelerationCurve = _runtimeConfig.accelerationCurve;
+    tuning.velocitySmoothing = _runtimeConfig.velocitySmoothing;
+    tuning.maxVelocityNormalizedPerSec = _runtimeConfig.maxVelocityNormalizedPerSec;
     _panTiltEngine.configure(_activeProfile.deadband, _activeProfile.panSpeedScale, _activeProfile.tiltSpeedScale,
                              tuning);
   }

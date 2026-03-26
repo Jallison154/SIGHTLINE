@@ -4,6 +4,7 @@
 
 #include "ArtNetSender.h"
 #include "ControlInput.h"
+#include "ControllerConfigStore.h"
 #include "DmxMapper.h"
 #include "DmxUniverse.h"
 #include "FixtureProfileStore.h"
@@ -20,6 +21,7 @@ class App {
   void transmitIfDue(uint32_t nowMs);
 
   ControlInput _controlInput;
+  ControllerConfigStore _configStore;
   PanTiltEngine _panTiltEngine;
   FixtureProfileStore _profileStore;
   DmxMapper _mapper;
@@ -27,10 +29,12 @@ class App {
   ArtNetSender _artNetSender;
 
   FixtureProfile _activeProfile;
+  ControllerConfig _persistedConfig;
+  ControllerConfig _runtimeConfig;
   ControlState _controlState;
 
   uint32_t _lastTickMs = 0;
   uint32_t _lastTxMs = 0;
-  uint32_t _txPeriodMs = 25;  // 40Hz default
+  uint32_t _txPeriodMs = 25;
   uint16_t _artNetUniverse = 0;
 };

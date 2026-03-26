@@ -8,8 +8,11 @@ void App::begin() {
   _status.setUptime(0);
 
   _configStore.begin();
-  const bool configOk = _configStore.load(_config);
-  _status.markConfigLoaded(configOk);
+  NodeConfig persistedConfig;
+  bool usedDefaults = false;
+  const bool configOk = _configStore.loadPersisted(persistedConfig, usedDefaults);
+  _configStore.applyToRuntime(persistedConfig, _config);
+  _status.markConfigLoaded(configOk || usedDefaults);
 
   // TODO(HW): Set based on real ETH link state.
   _status.markEthernetReady(true);

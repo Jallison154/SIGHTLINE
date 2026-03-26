@@ -15,11 +15,21 @@ struct NodeConfig {
 
 class ConfigStore {
  public:
+  static constexpr uint16_t kCurrentSchemaVersion = 1;
+
   bool begin();
+  NodeConfig defaults() const;
+  bool loadPersisted(NodeConfig& outPersistedConfig, bool& outUsedDefaults);
+  bool savePersisted(const NodeConfig& config);
+  bool resetToDefaults(NodeConfig& outPersistedConfig);
+  void applyToRuntime(const NodeConfig& persistedConfig, NodeConfig& runtimeConfig) const;
+
+  // Legacy wrappers kept for current call sites.
   bool load(NodeConfig& outConfig);
   bool save(const NodeConfig& config);
 
  private:
   bool validate(const NodeConfig& config, String& outError);
+  bool migrateIfNeeded(uint16_t storedVersion);
   NodeConfig _cachedConfig;
 };

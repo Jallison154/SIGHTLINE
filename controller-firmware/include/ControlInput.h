@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "EncoderPcnt.h"
+
 struct ControlState {
   // Raw encoder movement since last update tick (detents or counts).
   int32_t panEncoderDelta = 0;
@@ -19,6 +21,9 @@ class ControlInput {
   void update(uint32_t nowMs, uint32_t dtMs, ControlState& outState);
 
  private:
+  bool _useSimulation = true;
+  EncoderPcnt _panEncoder;
+  EncoderPcnt _tiltEncoder;
   int32_t _simPanAccumulator = 0;
   int32_t _simTiltAccumulator = 0;
 };

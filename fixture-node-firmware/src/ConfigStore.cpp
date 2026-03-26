@@ -2,10 +2,17 @@
 
 #include <Preferences.h>
 
+namespace {
+constexpr const char* kNs = "sightline-node";
+constexpr const char* kSchemaVersionKey = "schemaVer";
+}
+
 bool ConfigStore::begin() {
   // NVS namespace is opened per operation, no long-lived handle needed here.
   return true;
 }
+
+NodeConfig ConfigStore::defaults() const { return NodeConfig{}; }
 
 bool ConfigStore::validate(const NodeConfig& config, String& outError) {
   if (config.nodeName.length() == 0 || config.nodeName.length() > 32) {
@@ -27,15 +34,30 @@ bool ConfigStore::validate(const NodeConfig& config, String& outError) {
   return true;
 }
 
-bool ConfigStore::load(NodeConfig& outConfig) {
+bool ConfigStore::migrateIfNeeded(uint16_t storedVersion) {
+  if (storedVersion == 0) {
+    // Legacy config without version marker: treat as schema v1.
+    return true;
+  }
+  if (storedVersion == kCurrentSchemaVersion) {
+    return true;
+  }
+
+  // TODO: Add explicit migrations when schema changes.
+  return false;
+}
+
+bool ConfigStore::loadPersisted(NodeConfig& outPersistedConfig, bool& outUsedDefaults) {
+  outUsedDefaults = false;
   Preferences prefs;
-  if (!prefs.begin("sightline-node", true)) {
-    outConfig = NodeConfig{};
-    _cachedConfig = outConfig;
+  if (!prefs.begin(kNs, true)) {
+    outPersistedConfig = defaults();
+    _cachedConfig = outPersistedConfig;
+    outUsedDefaults = true;
     return false;
   }
 
-  NodeConfig loaded;
+  NodeConfig loaded = defaults();
   loaded.nodeName = prefs.getString("nodeName", loaded.nodeName);
   loaded.fixtureLabel = prefs.getString("fixtureLabel", loaded.fixtureLabel);
   loaded.universe = prefs.getUShort("universe", loaded.universe);
@@ -44,30 +66,51 @@ bool ConfigStore::load(NodeConfig& outConfig) {
   loaded.staticIp = prefs.getString("staticIp", loaded.staticIp);
   loaded.subnetMask = prefs.getString("subnet", loaded.subnetMask);
   loaded.gateway = prefs.getString("gateway", loaded.gateway);
+  const uint16_t storedVersion = prefs.getUShort(kSchemaVersionKey, 0);
   prefs.end();
 
   String err;
+  if (storedVersion > 0) {
+    const bool migrateOk = migrateIfNeeded(storedVersion);
+    if (!migrateOk) {
+      outPersistedConfig = defaults();
+      _cachedConfig = outPersistedConfig;
+      outUsedDefaults = true;
+      return false;
+    }
+  }
+
   if (!validate(loaded, err)) {
-    outConfig = NodeConfig{};
-    _cachedConfig = outConfig;
+    outPersistedConfig = defaults();
+    _cachedConfig = outPersistedConfig;
+    outUsedDefaults = true;
     return false;
   }
 
-  outConfig = loaded;
+  outPersistedConfig = loaded;
   _cachedConfig = loaded;
+
+  if (storedVersion == 0) {
+    Preferences writePrefs;
+    if (writePrefs.begin(kNs, false)) {
+      writePrefs.putUShort(kSchemaVersionKey, kCurrentSchemaVersion);
+      writePrefs.end();
+    }
+  }
   return true;
 }
 
-bool ConfigStore::save(const NodeConfig& config) {
+bool ConfigStore::savePersisted(const NodeConfig& config) {
   String err;
   if (!validate(config, err)) {
     return false;
   }
 
   Preferences prefs;
-  if (!prefs.begin("sightline-node", false)) {
+  if (!prefs.begin(kNs, false)) {
     return false;
   }
+  prefs.putUShort(kSchemaVersionKey, kCurrentSchemaVersion);
   prefs.putString("nodeName", config.nodeName);
   prefs.putString("fixtureLabel", config.fixtureLabel);
   prefs.putUShort("universe", config.universe);
@@ -81,3 +124,19 @@ bool ConfigStore::save(const NodeConfig& config) {
   _cachedConfig = config;
   return true;
 }
+
+bool ConfigStore::resetToDefaults(NodeConfig& outPersistedConfig) {
+  outPersistedConfig = defaults();
+  return savePersisted(outPersistedConfig);
+}
+
+void ConfigStore::applyToRuntime(const NodeConfig& persistedConfig, NodeConfig& runtimeConfig) const {
+  runtimeConfig = persistedConfig;
+}
+
+bool ConfigStore::load(NodeConfig& outConfig) {
+  bool usedDefaults = false;
+  return loadPersisted(outConfig, usedDefaults);
+}
+
+bool ConfigStore::save(const NodeConfig& config) { return savePersisted(config); }
