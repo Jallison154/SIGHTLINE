@@ -4,9 +4,61 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SIGHTLINE Fixture Node</title>
+    <style>
+      body { font-family: sans-serif; margin: 20px; background: #111; color: #eee; }
+      .card { max-width: 760px; padding: 16px; border: 1px solid #444; border-radius: 8px; }
+      label { display: block; margin: 8px 0; }
+      input { width: 100%; padding: 6px; }
+      button { margin-top: 10px; padding: 8px 12px; }
+      pre { background: #1e1e1e; padding: 12px; border-radius: 6px; overflow: auto; }
+    </style>
   </head>
   <body>
-    <h1>SIGHTLINE Fixture Node</h1>
-    <p>TODO: Add lightweight configuration UI.</p>
+    <div class="card">
+      <h1>SIGHTLINE Fixture Node</h1>
+      <p>Minimal UI scaffold. API: <code>/api/status</code>, <code>/api/config</code>.</p>
+
+      <h2>Configuration</h2>
+      <label>Node Name <input id="nodeName" /></label>
+      <label>Universe <input id="universe" type="number" min="0" max="32767" /></label>
+      <label>DMX Start Address <input id="dmxStartAddress" type="number" min="1" max="512" /></label>
+      <button id="saveBtn">Save</button>
+
+      <h2>Status</h2>
+      <pre id="status">loading...</pre>
+    </div>
+
+    <script>
+      async function loadConfig() {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        nodeName.value = cfg.nodeName || '';
+        universe.value = cfg.universe ?? 0;
+        dmxStartAddress.value = cfg.dmxStartAddress ?? 1;
+      }
+
+      async function loadStatus() {
+        const res = await fetch('/api/status');
+        const status = await res.json();
+        document.getElementById('status').textContent = JSON.stringify(status, null, 2);
+      }
+
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        const payload = {
+          nodeName: nodeName.value,
+          universe: Number(universe.value),
+          dmxStartAddress: Number(dmxStartAddress.value)
+        };
+        await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        await loadStatus();
+      });
+
+      loadConfig().then(loadStatus);
+      setInterval(loadStatus, 1000);
+    </script>
   </body>
 </html>

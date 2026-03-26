@@ -1,19 +1,22 @@
 {
-  "id": "generic-moving-head-16bit",
-  "display_name": "Generic Moving Head 16-bit",
+  "id": "generic-moving-head-16bit-20ch",
+  "fixture_name": "Generic Moving Head",
   "manufacturer": "Generic",
-  "model": "MH-16",
+  "mode_name": "20ch Extended",
   "channel_count": 20,
-  "attributes": {
-    "pan": { "coarse": 1, "fine": 2, "invert": false },
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2, "invert": false, "limits": { "min": 500, "max": 65000 } },
     "tilt": { "coarse": 3, "fine": 4, "invert": false },
-    "dimmer": { "coarse": 5 },
-    "zoom": { "coarse": 6 },
-    "iris": { "coarse": 7 },
-    "focus": { "coarse": 8 },
-    "color": { "coarse": 9 }
+    "dimmer": { "channel": 5, "limits": { "min": 20, "max": 255 } },
+    "shutter": { "channel": 6 },
+    "zoom": { "channel": 7 },
+    "focus": { "channel": 8 },
+    "iris": { "channel": 9 },
+    "color": { "channel": 10 }
   },
   "defaults": {
+    "shutter_open": true,
+    "dimmer": 255,
     "deadband": 0.02,
     "smoothing_alpha": 0.25,
     "pan_speed_scale": 1.0,

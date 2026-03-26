@@ -16,3 +16,16 @@ ESP32-based ground controller firmware for SIGHTLINE.
 - `src/`: application entrypoint and modules
 - `lib/`: private reusable components for this target
 - `config/`: local config placeholders and defaults
+- `sim/`: small host-side simulation helpers for tuning logic
+
+## Pan/Tilt Tuning Notes
+
+Pan/tilt motion uses velocity-based control from encoder deltas (not absolute position):
+
+- `sensitivity`: counts/sec -> velocity conversion
+- `accelerationThresholdCountsPerSec`: where acceleration boost begins
+- `accelerationGain` and `accelerationCurve`: how strongly fast turns speed up motion
+- `velocitySmoothing`: low-pass filter for natural movement
+- `maxVelocityNormalizedPerSec`: safety clamp
+
+Hardware-specific encoder pin setup remains marked as `TODO(HW)` in `src/ControlInput.cpp`.

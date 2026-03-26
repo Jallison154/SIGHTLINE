@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sightline.local/schemas/fixture-profile.schema.json",
+  "title": "SIGHTLINE Fixture Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "fixture_name", "manufacturer", "mode_name", "channel_count", "channels"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "fixture_name": { "type": "string", "minLength": 1 },
+    "manufacturer": { "type": "string", "minLength": 1 },
+    "mode_name": { "type": "string", "minLength": 1 },
+    "channel_count": { "type": "integer", "minimum": 1, "maximum": 512 },
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pan", "tilt"],
+      "properties": {
+        "pan": { "$ref": "#/$defs/channel16Required" },
+        "tilt": { "$ref": "#/$defs/channel16Required" },
+        "dimmer": { "$ref": "#/$defs/channel8Optional" },
+        "shutter": { "$ref": "#/$defs/channel8Optional" },
+        "zoom": { "$ref": "#/$defs/channel8Optional" },
+        "focus": { "$ref": "#/$defs/channel8Optional" },
+        "iris": { "$ref": "#/$defs/channel8Optional" },
+        "color": { "$ref": "#/$defs/channel8Optional" }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shutter_open": { "type": "boolean" },
+        "dimmer": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "deadband": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "smoothing_alpha": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "pan_speed_scale": { "type": "number", "minimum": 0.0, "maximum": 10.0 },
+        "tilt_speed_scale": { "type": "number", "minimum": 0.0, "maximum": 10.0 }
+      }
+    }
+  },
+  "$defs": {
+    "limits8": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "max": { "type": "integer", "minimum": 0, "maximum": 255 }
+      }
+    },
+    "limits16": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "max": { "type": "integer", "minimum": 0, "maximum": 65535 }
+      }
+    },
+    "channel8Optional": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel"],
+      "properties": {
+        "channel": { "type": "integer", "minimum": 1, "maximum": 512 },
+        "invert": { "type": "boolean" },
+        "limits": { "$ref": "#/$defs/limits8" }
+      }
+    },
+    "channel16Required": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coarse", "fine"],
+      "properties": {
+        "coarse": { "type": "integer", "minimum": 1, "maximum": 512 },
+        "fine": { "type": "integer", "minimum": 1, "maximum": 512 },
+        "invert": { "type": "boolean" },
+        "limits": { "$ref": "#/$defs/limits16" }
+      }
+    }
+  }
+}

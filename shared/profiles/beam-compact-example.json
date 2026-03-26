@@ -1,17 +1,20 @@
 {
-  "id": "beam-compact-example",
-  "display_name": "Beam Compact Example",
-  "manufacturer": "Example",
-  "model": "Beam-Compact",
+  "id": "beam-compact-14ch",
+  "fixture_name": "Beam Compact",
+  "manufacturer": "Example Lighting",
+  "mode_name": "14ch Standard",
   "channel_count": 14,
-  "attributes": {
-    "pan": { "coarse": 1, "fine": 2, "invert": false },
-    "tilt": { "coarse": 3, "fine": 4, "invert": false },
-    "dimmer": { "coarse": 5 },
-    "color": { "coarse": 6 },
-    "focus": { "coarse": 7 }
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2, "invert": true },
+    "tilt": { "coarse": 3, "fine": 4, "invert": false, "limits": { "min": 1000, "max": 62000 } },
+    "dimmer": { "channel": 5 },
+    "shutter": { "channel": 6 },
+    "color": { "channel": 7 },
+    "focus": { "channel": 8 }
   },
   "defaults": {
+    "shutter_open": true,
+    "dimmer": 220,
     "deadband": 0.03,
     "smoothing_alpha": 0.2,
     "pan_speed_scale": 0.9,
