@@ -16,6 +16,7 @@ struct NetworkState {
 class NetworkManager {
  public:
   void begin(const NodeConfig& config, bool forceSetupMode);
+  void reconfigure(const NodeConfig& config, bool forceSetupMode);
   void tick(uint32_t nowMs, const NodeConfig& config);
 
   bool isConnected() const { return _state.connected; }

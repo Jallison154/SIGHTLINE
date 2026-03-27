@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="/shared/styles.css" />
     <link rel="stylesheet" href="/controller/styles.css" />
   </head>
-  <body>
+  <body class="device-controller">
     <main class="app-shell">
       <header class="panel header">
         <div class="brand">
           <img src="/sightline_logo.png" alt="SIGHTLINE logo" />
-          <div>
+          <div class="brand-meta">
             <h1>SIGHTLINE Controller</h1>
-            <p>Unified control, device information, and service dashboard</p>
+            <div id="headerRoleText" class="role-banner controller">Role: Controller</div>
+            <p>Primary control surface and targeting service</p>
           </div>
         </div>
         <div class="top-status-grid">
@@ -73,12 +74,13 @@
         <div class="status-grid">
           <div>Overview</div><div>Controller and target runtime state</div>
           <div>Device ID</div><div id="dbgControllerId">-</div>
-          <div>Node / Controller Name</div><div id="dbgControllerName">SIGHTLINE Controller</div>
-          <div>Target</div><div id="ovTargetNode">-</div>
+          <div>Device Role</div><div id="dbgDeviceRole">Controller</div>
+          <div>Device Name</div><div id="dbgControllerName">SIGHTLINE Controller</div>
+          <div>Target Node</div><div id="ovTargetNode">-</div>
           <div>Profile Name</div><div id="ovProfileName">-</div>
           <div>Firmware Version</div><div id="dbgFirmwareVersion">sim-v1.0</div>
           <div>Controller Status</div><div id="ovControllerStatus">-</div>
-          <div>Status Details</div><div id="dbgSignalHealth">-</div>
+          <div>Connection Health</div><div id="dbgSignalHealth">-</div>
           <div>Last Update Time</div><div id="ovLastUpdate">-</div>
           <div>Debug</div><div>Raw and source-level diagnostics</div>
           <div>Raw State JSON</div><pre id="dbgRawState" class="pre">-</pre>

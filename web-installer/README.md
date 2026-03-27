@@ -1,6 +1,7 @@
 # SIGHTLINE Browser USB Installer
 
 This folder hosts browser-based USB flashing assets for SIGHTLINE (WLED-style flow).
+Current packaged target: **Fixture Node firmware** (`deviceRole=fixture_node`).
 
 ## Recommended implementation
 
@@ -62,6 +63,7 @@ Web Serial requires Chromium-based browsers:
 
 ## TODO (pipeline integration)
 
+- Add dedicated Controller firmware installer flow (`deviceRole=controller`)
 - Automate `build + buildfs + prepare_web_installer.py` in CI
 - Publish installer assets + manifest to project website/releases
 - Add versioned firmware metadata in manifest (`version`, changelog links)

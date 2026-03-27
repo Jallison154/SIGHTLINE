@@ -10,8 +10,9 @@
   <main class="card">
     <header class="header">
       <img src="/sightline_logo.png" alt="SIGHTLINE" width="180" decoding="async" />
-      <h1>SIGHTLINE</h1>
+      <h1>SIGHTLINE Fixture Node</h1>
     </header>
+    <p id="roleBanner" class="role-banner fixture">Role: Fixture Node</p>
     <p class="sub">Fixture node setup · Choose network mode and save device settings.</p>
     <div id="setupBanner" class="banner" hidden>
       <strong>First-time setup mode:</strong> This node is hosting a setup Wi-Fi access point.
@@ -20,6 +21,12 @@
 
     <section>
       <h2>Device</h2>
+      <div class="status-grid">
+        <div>Device role</div><div id="devRole">Fixture Node</div>
+        <div>Device ID</div><div id="devId">-</div>
+        <div>Firmware version</div><div id="devFw">-</div>
+      </div>
+      <p class="hint">Confirm role before applying settings to avoid configuring the wrong ESP32.</p>
       <label>Node name <input id="nodeName" maxlength="32" /></label>
       <label>Fixture label <input id="fixtureLabel" maxlength="64" placeholder="Optional" /></label>
     </section>
@@ -74,6 +81,12 @@
         <button id="saveBtn" type="button">Save</button>
         <button id="applyBtn" type="button">Save + Apply</button>
       </div>
+      <label class="check compact"><input id="forceNetworkApply" type="checkbox" /> Apply network switch immediately (may disconnect this page)</label>
+      <p class="hint">Safer default: save settings first, then use Reconnect or Reboot once ready.</p>
+      <div class="buttons secondary">
+        <button id="reconnectBtn" type="button">Reconnect Network</button>
+        <button id="rebootBtn" type="button">Reboot Device</button>
+      </div>
       <p id="message"></p>
     </section>
 
@@ -81,6 +94,7 @@
       <h2>Status</h2>
       <div class="status-grid">
         <div>Network mode</div><div id="netMode">-</div>
+        <div>Connection</div><div><span id="netConnected" class="badge">-</span></div>
         <div>Network state</div><div id="netState">-</div>
         <div>Network IP</div><div id="netIp">-</div>
         <div>Setup mode</div><div id="netSetupMode">-</div>

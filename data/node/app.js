@@ -48,6 +48,10 @@ function textOrFallback(v, fallback = "-") {
   return t ? t : fallback;
 }
 
+function roleText(role) {
+  return role === "controller" ? "Controller" : "Fixture Node";
+}
+
 function applyConfig(cfg) {
   currentConfig = cfg || {};
   $("cfgNodeName").value = cfg.nodeName || "";
@@ -59,6 +63,7 @@ function applyConfig(cfg) {
   $("cfgSubnet").value = cfg.subnetMask || "";
   $("cfgGateway").value = cfg.gateway || "";
   $("headerNodeName").textContent = `Node: ${cfg.nodeName || "-"}`;
+  $("headerRoleText").textContent = `Role: ${roleText(cfg.deviceRole || "fixture_node")}`;
   $("infoNodeName").textContent = cfg.nodeName || "-";
   $("infoTarget").textContent = cfg.fixtureLabel || cfg.nodeName || nodeId;
   toggleStaticIpFields();
@@ -73,7 +78,9 @@ function applyStatus(st) {
   $("stTilt").textContent = intText(st.tilt, 0);
   $("stIntensity").textContent = intText(st.intensity, 0);
 
-  $("infoNodeId").textContent = st.nodeId || "-";
+  const role = st.deviceRole || currentConfig.deviceRole || "fixture_node";
+  $("infoNodeId").textContent = st.deviceId || st.nodeId || "-";
+  $("infoDeviceRole").textContent = roleText(role);
   $("infoIp").textContent = st.ip || "-";
   $("infoFirmware").textContent = st.firmwareVersion || "-";
   $("infoController").textContent = st.assignedControllerId || "Waiting for controller";

@@ -24,6 +24,11 @@ bool ConfigStore::begin() {
 NodeConfig ConfigStore::defaults() const { return NodeConfig{}; }
 
 bool ConfigStore::validate(const NodeConfig& config, String& outError) {
+  auto isValidIp = [](const String& value) {
+    IPAddress ip;
+    return ip.fromString(value);
+  };
+
   if (config.nodeName.length() == 0 || config.nodeName.length() > 32) {
     outError = "nodeName must be 1..32 chars";
     return false;
@@ -44,9 +49,23 @@ bool ConfigStore::validate(const NodeConfig& config, String& outError) {
     outError = "wifiSsid required in Wi-Fi Station mode";
     return false;
   }
+  if (config.wifiPassword.length() > 0 && config.wifiPassword.length() < 8) {
+    outError = "wifiPassword must be empty or 8+ chars";
+    return false;
+  }
   if (config.setupApSsid.length() == 0 || config.setupApSsid.length() > 32) {
     outError = "setupApSsid must be 1..32 chars";
     return false;
+  }
+  if (config.setupApPassword.length() > 0 && config.setupApPassword.length() < 8) {
+    outError = "setupApPassword must be empty or 8+ chars";
+    return false;
+  }
+  if (!config.dhcp) {
+    if (!isValidIp(config.staticIp) || !isValidIp(config.subnetMask) || !isValidIp(config.gateway)) {
+      outError = "staticIp/subnetMask/gateway must be valid IPv4 addresses";
+      return false;
+    }
   }
   return true;
 }

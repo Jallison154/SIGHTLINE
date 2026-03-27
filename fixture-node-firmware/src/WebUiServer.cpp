@@ -1,6 +1,7 @@
 #include "WebUiServer.h"
 
 #include <ArduinoJson.h>
+#include <cstdio>
 #include <LittleFS.h>
 #include <WebServer.h>
 
@@ -11,6 +12,15 @@
 
 namespace {
 WebServer g_server(80);
+constexpr const char* kDeviceRole = "fixture_node";
+constexpr const char* kFirmwareVersion = "fixture-node-fw";
+
+String deviceIdString() {
+  uint64_t mac = ESP.getEfuseMac();
+  char out[18];
+  std::snprintf(out, sizeof(out), "%04X%08X", static_cast<uint16_t>(mac >> 32), static_cast<uint32_t>(mac));
+  return String(out);
+}
 
 bool sendFileIfExists(const char* path, const char* contentType) {
   if (!LittleFS.exists(path)) {
@@ -31,7 +41,7 @@ void sendStaticFallbackPage() {
                 "<p>UI assets missing. Upload LittleFS data partition (uploadfs).</p></body></html>");
 }
 
-bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store, bool applyNow) {
+bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store, bool applyNow, bool* outNetworkChanged = nullptr) {
   StaticJsonDocument<768> doc;
   const String body = g_server.arg("plain");
   const DeserializationError err = deserializeJson(doc, body);
@@ -48,16 +58,35 @@ bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store, bool 
     next.networkMode = m == "wifi-station" ? NodeConfig::NetworkMode::WiFiStation : NodeConfig::NetworkMode::Ethernet;
   }
   if (doc.containsKey("wifiSsid")) next.wifiSsid = static_cast<const char*>(doc["wifiSsid"]);
-  if (doc.containsKey("wifiPassword")) next.wifiPassword = static_cast<const char*>(doc["wifiPassword"]);
+  if (doc.containsKey("wifiPassword")) {
+    const String candidate = static_cast<const char*>(doc["wifiPassword"]);
+    // Empty password in the UI means "leave existing saved value unchanged".
+    if (candidate.length() > 0) {
+      next.wifiPassword = candidate;
+    }
+  }
   if (doc.containsKey("fallbackToSetupAp")) next.fallbackToSetupAp = doc["fallbackToSetupAp"];
   if (doc.containsKey("setupApSsid")) next.setupApSsid = static_cast<const char*>(doc["setupApSsid"]);
-  if (doc.containsKey("setupApPassword")) next.setupApPassword = static_cast<const char*>(doc["setupApPassword"]);
+  if (doc.containsKey("setupApPassword")) {
+    const String candidate = static_cast<const char*>(doc["setupApPassword"]);
+    if (candidate.length() > 0) {
+      next.setupApPassword = candidate;
+    }
+  }
   if (doc.containsKey("universe")) next.universe = doc["universe"];
   if (doc.containsKey("dmxStartAddress")) next.dmxStartAddress = doc["dmxStartAddress"];
   if (doc.containsKey("dhcp")) next.dhcp = doc["dhcp"];
   if (doc.containsKey("staticIp")) next.staticIp = static_cast<const char*>(doc["staticIp"]);
   if (doc.containsKey("subnetMask")) next.subnetMask = static_cast<const char*>(doc["subnetMask"]);
   if (doc.containsKey("gateway")) next.gateway = static_cast<const char*>(doc["gateway"]);
+
+  const bool networkChanged = (next.networkMode != liveConfig.networkMode) || (next.wifiSsid != liveConfig.wifiSsid) ||
+                              (next.wifiPassword != liveConfig.wifiPassword) || (next.dhcp != liveConfig.dhcp) ||
+                              (next.staticIp != liveConfig.staticIp) || (next.subnetMask != liveConfig.subnetMask) ||
+                              (next.gateway != liveConfig.gateway);
+  if (outNetworkChanged) {
+    *outNetworkChanged = networkChanged;
+  }
 
   if (!store.savePersisted(next)) {
     g_server.send(400, "application/json", "{\"ok\":false,\"error\":\"invalid-config\"}");
@@ -70,8 +99,7 @@ bool parseAndSaveConfigPayload(NodeConfig& liveConfig, ConfigStore& store, bool 
 }
 }
 
-bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const StatusTracker& status,
-                        const NetworkManager& network) {
+bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const StatusTracker& status, NetworkManager& network) {
   _config = &liveConfig;
   _configStore = &configStore;
   _status = &status;
@@ -110,6 +138,10 @@ bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const 
   g_server.on("/api/status", HTTP_GET, [this]() {
     StaticJsonDocument<768> doc;
     const NodeStatus& s = _status->current();
+    doc["deviceRole"] = kDeviceRole;
+    doc["deviceId"] = deviceIdString();
+    doc["deviceName"] = _config->nodeName;
+    doc["firmwareVersion"] = kFirmwareVersion;
     doc["ethernetReady"] = s.ethernetReady;
     doc["networkConnected"] = s.networkConnected;
     doc["setupMode"] = s.setupMode;
@@ -137,6 +169,9 @@ bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const 
 
   g_server.on("/api/config", HTTP_GET, [this]() {
     StaticJsonDocument<1024> doc;
+    doc["deviceRole"] = kDeviceRole;
+    doc["deviceId"] = deviceIdString();
+    doc["firmwareVersion"] = kFirmwareVersion;
     doc["nodeName"] = _config->nodeName;
     doc["fixtureLabel"] = _config->fixtureLabel;
     doc["networkMode"] = _config->networkMode == NodeConfig::NetworkMode::WiFiStation ? "wifi-station" : "ethernet";
@@ -165,17 +200,48 @@ bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const 
   });
 
   g_server.on("/api/config/apply", HTTP_POST, [this]() {
-    if (!parseAndSaveConfigPayload(*_config, *_configStore, true)) {
+    bool networkChanged = false;
+    if (!parseAndSaveConfigPayload(*_config, *_configStore, true, &networkChanged)) {
       return;
     }
-    // Apply semantics: configuration is persisted and copied to live state.
-    // TODO(HW): Reconfigure Ethernet/Wi-Fi services immediately once service ownership is split.
-    g_server.send(200, "application/json", "{\"ok\":true,\"applied\":true,\"note\":\"reboot-required\"}");
+    StaticJsonDocument<192> doc;
+    doc["ok"] = true;
+    doc["applied"] = true;
+
+    StaticJsonDocument<96> reqDoc;
+    bool allowSwitchNow = false;
+    if (!deserializeJson(reqDoc, g_server.arg("plain"))) {
+      allowSwitchNow = reqDoc["forceNetworkApply"] | false;
+    }
+
+    if (networkChanged && !allowSwitchNow) {
+      doc["note"] = "network-settings-saved-pending-reconnect";
+    } else {
+      _network->reconfigure(*_config, false);
+      doc["note"] = "network-reconfigured";
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+    g_server.send(200, "application/json", payload);
+  });
+
+  g_server.on("/api/network/reconnect", HTTP_POST, [this]() {
+    _network->reconfigure(*_config, false);
+    g_server.send(200, "application/json", "{\"ok\":true,\"note\":\"reconnect-requested\"}");
+  });
+
+  g_server.on("/api/reboot", HTTP_POST, [this]() {
+    g_server.send(200, "application/json", "{\"ok\":true,\"note\":\"rebooting\"}");
+    scheduleReboot(100);
   });
 
   g_server.on("/api/setup-state", HTTP_GET, [this]() {
     StaticJsonDocument<192> doc;
     const NetworkState& ns = _network->state();
+    doc["deviceRole"] = kDeviceRole;
+    doc["deviceId"] = deviceIdString();
+    doc["firmwareVersion"] = kFirmwareVersion;
     doc["setupMode"] = ns.setupMode;
     doc["networkMode"] = ns.mode;
     doc["status"] = ns.statusText;
@@ -191,4 +257,15 @@ bool WebUiServer::begin(NodeConfig& liveConfig, ConfigStore& configStore, const 
   return true;
 }
 
-void WebUiServer::tick() { g_server.handleClient(); }
+void WebUiServer::scheduleReboot(uint32_t delayMs) {
+  _rebootScheduled = true;
+  _rebootAtMs = millis() + delayMs;
+}
+
+void WebUiServer::tick() {
+  g_server.handleClient();
+  if (_rebootScheduled && millis() >= _rebootAtMs) {
+    _rebootScheduled = false;
+    ESP.restart();
+  }
+}

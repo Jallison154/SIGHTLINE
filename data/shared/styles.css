@@ -50,6 +50,39 @@ body {
   align-items: center;
 }
 
+.brand-meta {
+  display: grid;
+  gap: 6px;
+}
+
+.role-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #3e5f80;
+  background: #112235;
+  color: #bfe8ff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.role-banner.controller {
+  border-color: #2f6585;
+  background: #11283a;
+  color: #b9e9ff;
+}
+
+.role-banner.fixture {
+  border-color: #6b5a2e;
+  background: #2a220f;
+  color: #ffdca3;
+}
+
 .brand img {
   width: 80px;
   height: auto;

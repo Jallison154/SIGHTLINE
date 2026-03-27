@@ -9,6 +9,7 @@
 #include "NetworkManager.h"
 #include "StatusTracker.h"
 #include "WebUiServer.h"
+#include "LedStatus.h"
 
 class App {
  public:
@@ -17,6 +18,7 @@ class App {
 
  private:
   void serviceArtNet(uint32_t nowMs);
+  void updateNetworkStatus(uint32_t nowMs);
 
   NodeConfig _config;
   ConfigStore _configStore;
@@ -24,6 +26,8 @@ class App {
   ArtNetReceiver _artNetReceiver;
   DmxOutput _dmxOutput;
   NetworkManager _network;
+  LedStatus _led;
   StatusTracker _status;
   WebUiServer _webUi;
+  bool _lastNetworkConnected = false;
 };

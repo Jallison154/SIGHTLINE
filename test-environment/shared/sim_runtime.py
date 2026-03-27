@@ -117,6 +117,9 @@ class FixtureNodeSim:
         tilt = clamp16(self._last_controls.tilt16 if self._last_controls.tilt16 is not None else 32768)
         intensity = clamp8(self._last_controls.intensity if self._last_controls.intensity is not None else 0)
         return {
+            "deviceRole": "fixture_node",
+            "deviceName": self.friendly_name,
+            "deviceId": self.node_id,
             "nodeId": self.node_id,
             "networkReady": self.online,
             "ip": self.ip,
@@ -381,6 +384,10 @@ class SimRuntime:
         with self._lock:
             n = self.nodes.get(self.controller.active_target_node_id)
             return {
+                "deviceRole": "controller",
+                "deviceName": "SIGHTLINE Controller",
+                "deviceId": self.controller.controller_id,
+                "firmwareVersion": "sim-v1.0",
                 "controllerId": self.controller.controller_id,
                 "networkReady": True,
                 "discoveryReady": True,
@@ -403,8 +410,12 @@ class SimRuntime:
             if not n:
                 return {"error": "node-not-found"}
             return {
+                "deviceRole": "fixture_node",
+                "deviceId": n.node_id,
+                "firmwareVersion": n.firmware_version,
                 "nodeName": n.friendly_name,
                 "fixtureLabel": n.fixture_label,
+                "networkMode": "ethernet",
                 "universe": 0,
                 "dmxStartAddress": 1,
                 "dhcp": True,

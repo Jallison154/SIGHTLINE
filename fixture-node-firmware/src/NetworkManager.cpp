@@ -8,8 +8,12 @@ constexpr uint32_t kConnectTimeoutMs = 20000;
 }
 
 void NetworkManager::begin(const NodeConfig& config, bool forceSetupMode) {
+  reconfigure(config, forceSetupMode);
+}
+
+void NetworkManager::reconfigure(const NodeConfig& config, bool forceSetupMode) {
   const uint32_t nowMs = millis();
-  Serial.printf("[net] begin forceSetupMode=%s requestedMode=%s\n", forceSetupMode ? "true" : "false",
+  Serial.printf("[net] reconfigure forceSetupMode=%s requestedMode=%s\n", forceSetupMode ? "true" : "false",
                 config.networkMode == NodeConfig::NetworkMode::WiFiStation ? "wifi-station" : "ethernet");
   if (forceSetupMode) {
     startMode(config, ActiveMode::SetupAp, nowMs);
@@ -70,6 +74,11 @@ void NetworkManager::startMode(const NodeConfig& config, ActiveMode mode, uint32
   _state.connected = false;
   _state.ip = "";
   _state.ssid = "";
+
+  // Best-effort network stack cleanup before switching modes.
+  WiFi.disconnect(true, true);
+  WiFi.softAPdisconnect(true);
+  // TODO(HW): Add explicit Ethernet stop/reset sequence if required by final PHY driver.
 
   if (mode == ActiveMode::Ethernet) {
     startEthernet(config);

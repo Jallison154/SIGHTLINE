@@ -51,6 +51,10 @@ function textOrFallback(v, fallback = "-") {
   return t ? t : fallback;
 }
 
+function roleText(role) {
+  return role === "fixture_node" ? "Fixture Node" : "Controller";
+}
+
 function normalizeControlValue(key, value, fallback = 0) {
   if (key === "pan" || key === "tilt") return clamp16(value, fallback);
   return clamp8(value, fallback);
@@ -198,7 +202,12 @@ function applyState(state) {
   $("stIntensity").textContent = fmtInt(clamp8(state.intensity ?? 0));
 
   // Device Information
-  $("dbgControllerId").textContent = statusCache.controllerId || "sim-controller-1";
+  const role = statusCache.deviceRole || "controller";
+  $("headerRoleText").textContent = `Role: ${roleText(role)}`;
+  $("dbgControllerId").textContent = statusCache.deviceId || statusCache.controllerId || "sim-controller-1";
+  $("dbgDeviceRole").textContent = roleText(role);
+  $("dbgControllerName").textContent = statusCache.deviceName || "SIGHTLINE Controller";
+  $("dbgFirmwareVersion").textContent = statusCache.firmwareVersion || "sim-v1.0";
   $("ovTargetNode").textContent = state.activeTargetNodeId || "-";
   $("ovProfileName").textContent = fixtureInfoCache.profileName || "-";
   $("ovControllerStatus").textContent = statusCache.controllerStatus || (statusCache.controlTxReady ? "running" : "idle");

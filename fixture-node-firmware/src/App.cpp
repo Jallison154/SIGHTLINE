@@ -2,6 +2,7 @@
 
 void App::begin() {
   Serial.println("[app] begin");
+  Serial.println("[device] role=fixture_node");
   _dmxBuffer.clear();
   _status.setUptime(0);
 
@@ -18,6 +19,7 @@ void App::begin() {
                 _config.networkMode == NodeConfig::NetworkMode::WiFiStation ? "wifi-station" : "ethernet",
                 _config.dhcp ? "true" : "false", _config.staticIp.c_str());
   _network.begin(_config, firstBootSetupMode);
+  _led.begin();
   _status.markSetupMode(firstBootSetupMode);
 
   if (!_artNetReceiver.begin(_config.universe)) {
@@ -43,15 +45,7 @@ void App::begin() {
 
 void App::tick(uint32_t nowMs) {
   _status.setUptime(nowMs);
-  _network.tick(nowMs, _config);
-  const NetworkState& net = _network.state();
-  _status.markEthernetReady(net.mode == "ethernet" && net.connected);
-  _status.markNetworkConnected(net.connected);
-  _status.markSetupMode(net.setupMode);
-  _status.setNetworkMode(net.mode);
-  _status.setNetworkState(net.statusText);
-  _status.setNetworkIp(net.ip);
-  _status.setNetworkSsid(net.ssid);
+  updateNetworkStatus(nowMs);
 
   serviceArtNet(nowMs);
   _dmxOutput.tick(nowMs, _dmxBuffer);
@@ -59,8 +53,28 @@ void App::tick(uint32_t nowMs) {
   _webUi.tick();
 }
 
+void App::updateNetworkStatus(uint32_t nowMs) {
+  _network.tick(nowMs, _config);
+  const NetworkState& net = _network.state();
+  if (net.connected != _lastNetworkConnected) {
+    _led.notifyActivity(nowMs);
+    _lastNetworkConnected = net.connected;
+  }
+  _led.tick(nowMs, net.connected);
+  _status.markEthernetReady(net.mode == "ethernet" && net.connected);
+  _status.markNetworkConnected(net.connected);
+  _status.markSetupMode(net.setupMode);
+  _status.setNetworkMode(net.mode);
+  _status.setNetworkState(net.statusText);
+  _status.setNetworkIp(net.ip);
+  _status.setNetworkSsid(net.ssid);
+}
+
 void App::serviceArtNet(uint32_t nowMs) {
-  (void)_artNetReceiver.poll(nowMs, _dmxBuffer);
+  const bool acceptedFrame = _artNetReceiver.poll(nowMs, _dmxBuffer);
+  if (acceptedFrame) {
+    _led.notifyActivity(nowMs);
+  }
 
   const ArtNetSignalStatus signal = _artNetReceiver.signalStatus(nowMs);
   _status.setArtNetSignal(signal.hasSignal);

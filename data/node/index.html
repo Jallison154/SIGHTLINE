@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="/shared/styles.css" />
     <link rel="stylesheet" href="/node/styles.css" />
   </head>
-  <body>
+  <body class="device-fixture-node">
     <main class="app-shell">
       <header class="panel header">
         <div class="brand">
           <img src="/sightline_logo.png" alt="SIGHTLINE logo" />
-          <div>
+          <div class="brand-meta">
             <h1>SIGHTLINE Fixture Node</h1>
+            <div id="headerRoleText" class="role-banner fixture">Role: Fixture Node</div>
             <p id="headerNodeName">Node: -</p>
           </div>
         </div>
@@ -49,14 +50,15 @@
         <div class="status-grid">
           <div>Overview</div><div>Fixture node runtime and profile status</div>
           <div>Node ID</div><div id="infoNodeId">-</div>
-          <div>Node / Controller Name</div><div id="infoNodeName">-</div>
+          <div>Device Role</div><div id="infoDeviceRole">Fixture Node</div>
+          <div>Device Name</div><div id="infoNodeName">-</div>
           <div>IP Address</div><div id="infoIp">-</div>
           <div>Firmware Version</div><div id="infoFirmware">-</div>
-          <div>Target</div><div id="infoTarget">-</div>
-          <div>Claimed</div><div id="infoController">-</div>
+          <div>Target Node</div><div id="infoTarget">-</div>
+          <div>Claim Owner</div><div id="infoController">-</div>
           <div>Profile Name</div><div id="currentProfileName">-</div>
           <div>Last Update Time</div><div id="infoLastUpdate">-</div>
-          <div>Status Details</div><div id="infoClaimStatus">-</div>
+          <div>Connection Health</div><div id="infoClaimStatus">-</div>
           <div>Debug</div><div>Raw node status and profile details</div>
           <div>Raw/Current State</div><pre id="dbgNodeState" class="pre">-</pre>
         </div>
