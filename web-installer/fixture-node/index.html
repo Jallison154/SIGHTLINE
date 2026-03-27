@@ -41,6 +41,64 @@
         border-radius: 8px;
         background: #111925;
       }
+      .section-title {
+        margin: 16px 0 8px;
+        color: #b8cde5;
+        font-size: 0.82rem;
+        letter-spacing: 0.95px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .role-picker {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .role-btn {
+        width: 100%;
+        border: 1px solid #31506f;
+        border-radius: 9px;
+        background: #101925;
+        color: #d7e8fb;
+        padding: 10px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .role-btn.active {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.35) inset;
+        background: #163149;
+      }
+      .selection-panel {
+        margin-top: 10px;
+        border: 1px solid #355a7c;
+        border-radius: 10px;
+        padding: 12px;
+        background: #112235;
+      }
+      .badge {
+        display: inline-block;
+        margin: 4px 0 8px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid #355a7c;
+        background: #102132;
+        color: #bde8ff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      .badge.controller {
+        border-color: #2f6585;
+        background: #11283a;
+        color: #b9e9ff;
+      }
+      .badge.fixture-node {
+        border-color: #6b5a2e;
+        background: #2a220f;
+        color: #ffdca3;
+      }
       .warn {
         display: none;
         margin: 10px 0 14px;
@@ -56,23 +114,66 @@
         border-radius: 6px;
         padding: 2px 6px;
       }
+      #availability {
+        margin-top: 8px;
+      }
+      .selection-headline {
+        margin: 0 0 6px;
+        color: #d8edff;
+        font-weight: 700;
+      }
+      .selection-details {
+        margin: 0;
+      }
+      .install-note {
+        margin: 8px 0 0;
+        color: #b8d8f2;
+        font-size: 0.92rem;
+      }
+      .steps-intro {
+        margin-top: 2px;
+      }
+      .connect-box {
+        margin-top: 8px;
+        border: 1px solid #2d4c69;
+        border-radius: 8px;
+        background: #0f1c2a;
+        padding: 10px;
+      }
     </style>
   </head>
   <body>
     <main class="wrap">
       <h1>SIGHTLINE USB Installer</h1>
-      <p>Flash SIGHTLINE Fixture Node firmware directly from your browser over USB.</p>
-      <p><strong>Device role:</strong> Fixture Node (<code>fixture_node</code>)</p>
+      <div class="section-title">Device Type</div>
+      <div class="role-picker" role="tablist" aria-label="Device role selection">
+        <button id="roleControllerBtn" class="role-btn" type="button">Controller</button>
+        <button id="roleFixtureBtn" class="role-btn active" type="button">Fixture Node</button>
+      </div>
+      <div id="roleBadge" class="badge fixture-node">Role: Fixture Node</div>
+      <p id="roleDescription">Flash SIGHTLINE Fixture Node firmware directly from your browser over USB.</p>
+      <p id="roleDetails">Firmware type: <code>fixture_node</code> · Target manifest: <code>./manifest.json</code></p>
+      <div class="selection-panel">
+        <p id="selectionHeadline" class="selection-headline">You are about to install: Fixture Node firmware</p>
+        <p id="selectionDetails" class="selection-details">Confirm the selected role above before clicking Connect / Install.</p>
+      </div>
       <div id="localWarn" class="warn">
         This page was opened with <code>file://</code>. The installer must be served over
         <code>http://localhost</code> or HTTPS so the manifest can load.
       </div>
 
       <div class="install">
-        <esp-web-install-button manifest="./manifest.json"></esp-web-install-button>
+        <p class="section-title" style="margin-top:0">Install Action</p>
+        <div class="connect-box">
+          <p class="install-note">Connect / Install will flash the currently selected firmware role.</p>
+          <p id="installRoleLine" class="install-note"><strong>Current install target:</strong> Fixture Node</p>
+        </div>
+        <div id="installHost"></div>
+        <p id="availability" class="warn" style="display:none"></p>
       </div>
 
       <h2>Install Steps</h2>
+      <p class="steps-intro">First time? Follow these in order:</p>
       <ol>
         <li>Connect your ESP32 over USB.</li>
         <li>Click <strong>Connect</strong> / <strong>Install</strong> above.</li>
@@ -82,17 +183,99 @@
       </ol>
 
       <h2>After Flashing</h2>
-      <p>
+      <p id="afterFlashText">
         If no valid network config is saved, the device starts in setup AP mode.
         Connect to the setup AP and configure Ethernet or Wi-Fi Station.
       </p>
     </main>
     <script>
       (function () {
+        var roleConfig = {
+          controller: {
+            label: "Controller",
+            badgeClass: "controller",
+            roleId: "controller",
+            manifest: "./manifest-controller.json",
+            description: "Flash SIGHTLINE Controller firmware directly from your browser over USB.",
+            afterText: "After flashing, connect your control hardware and open the controller UI or serial logs to verify startup."
+          },
+          fixture_node: {
+            label: "Fixture Node",
+            badgeClass: "fixture-node",
+            roleId: "fixture_node",
+            manifest: "./manifest.json",
+            description: "Flash SIGHTLINE Fixture Node firmware directly from your browser over USB.",
+            afterText: "If no valid network config is saved, the device starts in setup AP mode. Connect to the setup AP and configure Ethernet or Wi-Fi Station."
+          }
+        };
+        var selectedRole = "fixture_node";
+
+        function byId(id) {
+          return document.getElementById(id);
+        }
+
+        function setRoleButtonState() {
+          byId("roleControllerBtn").classList.toggle("active", selectedRole === "controller");
+          byId("roleFixtureBtn").classList.toggle("active", selectedRole === "fixture_node");
+        }
+
+        function renderInstallButton(manifestPath) {
+          var host = byId("installHost");
+          host.innerHTML = "";
+          var btn = document.createElement("esp-web-install-button");
+          btn.setAttribute("manifest", manifestPath);
+          host.appendChild(btn);
+        }
+
+        function checkAvailability(manifestPath) {
+          var availability = byId("availability");
+          availability.style.display = "none";
+          fetch(manifestPath, { cache: "no-store" })
+            .then(function (r) {
+              if (!r.ok) throw new Error("manifest unavailable");
+              return r.json();
+            })
+            .then(function (m) {
+              var parts = (((m || {}).builds || [])[0] || {}).parts || [];
+              if (!parts.length) throw new Error("invalid manifest");
+            })
+            .catch(function () {
+              availability.textContent = "Selected firmware package is not available yet. Build/package that role, then reload this page.";
+              availability.style.display = "block";
+            });
+        }
+
+        function applyRole() {
+          var cfg = roleConfig[selectedRole];
+          setRoleButtonState();
+          var badge = byId("roleBadge");
+          badge.textContent = "Role: " + cfg.label;
+          badge.className = "badge " + cfg.badgeClass;
+          byId("roleDescription").textContent = cfg.description;
+          byId("roleDetails").innerHTML = "Firmware type: <code>" + cfg.roleId + "</code> · Target manifest: <code>" + cfg.manifest + "</code>";
+          byId("selectionHeadline").textContent = "You are about to install: " + cfg.label + " firmware";
+          byId("selectionDetails").textContent = "Confirm this matches the ESP32 role you want before continuing.";
+          byId("installRoleLine").innerHTML = "<strong>Current install target:</strong> " + cfg.label;
+          byId("afterFlashText").textContent = cfg.afterText;
+          renderInstallButton(cfg.manifest);
+          checkAvailability(cfg.manifest);
+        }
+
         if (window.location.protocol === "file:") {
-          var warn = document.getElementById("localWarn");
+          var warn = byId("localWarn");
           if (warn) warn.style.display = "block";
         }
+
+        byId("roleControllerBtn").addEventListener("click", function () {
+          selectedRole = "controller";
+          applyRole();
+        });
+        byId("roleFixtureBtn").addEventListener("click", function () {
+          selectedRole = "fixture_node";
+          applyRole();
+        });
+
+        applyRole();
       })();
     </script>
   </body>

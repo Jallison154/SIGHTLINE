@@ -1,0 +1,25 @@
+{
+  "name": "SIGHTLINE Controller",
+  "version": "dev",
+  "home_assistant_domain": "sightline",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "assets/controller/esp32_controller_dev/bootloader.bin",
+          "offset": 4096
+        },
+        {
+          "path": "assets/controller/esp32_controller_dev/partitions.bin",
+          "offset": 32768
+        },
+        {
+          "path": "assets/controller/esp32_controller_dev/firmware.bin",
+          "offset": 65536
+        }
+      ]
+    }
+  ]
+}

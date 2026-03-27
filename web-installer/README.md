@@ -1,7 +1,9 @@
 # SIGHTLINE Browser USB Installer
 
 This folder hosts browser-based USB flashing assets for SIGHTLINE (WLED-style flow).
-Current packaged target: **Fixture Node firmware** (`deviceRole=fixture_node`).
+Installer UI supports role selection between:
+- **Controller firmware** (`deviceRole=controller`)
+- **Fixture Node firmware** (`deviceRole=fixture_node`)
 
 ## Recommended implementation
 
@@ -11,10 +13,11 @@ Current packaged target: **Fixture Node firmware** (`deviceRole=fixture_node`).
 ## File layout
 
 - `fixture-node/index.html` – branded install page
-- `fixture-node/manifest.json` – ESP Web Tools manifest
-- `fixture-node/assets/<env>/...` – generated binaries for flashing
+- `fixture-node/manifest.json` – Fixture Node ESP Web Tools manifest
+- `fixture-node/manifest-controller.json` – Controller ESP Web Tools manifest
+- `fixture-node/assets/...` – generated binaries for flashing
 
-## Build + package binaries
+## Build + package binaries (Fixture Node)
 
 From `fixture-node-firmware/`:
 
@@ -32,6 +35,13 @@ This copies:
 - optional `littlefs.bin` (0x190000; when `buildfs` was run)
 
 into `web-installer/fixture-node/assets/esp32_eth_dev/` and regenerates `manifest.json`.
+
+## Controller packaging status
+
+Controller role selection is wired to `manifest-controller.json`.  
+If controller assets are missing, the page shows a clear availability warning.
+
+TODO: add a controller packaging script mirroring `fixture-node-firmware/tools/prepare_web_installer.py`.
 
 ## Hosting
 
@@ -63,7 +73,7 @@ Web Serial requires Chromium-based browsers:
 
 ## TODO (pipeline integration)
 
-- Add dedicated Controller firmware installer flow (`deviceRole=controller`)
+- Add dedicated controller asset packaging script (`deviceRole=controller`)
 - Automate `build + buildfs + prepare_web_installer.py` in CI
 - Publish installer assets + manifest to project website/releases
 - Add versioned firmware metadata in manifest (`version`, changelog links)
