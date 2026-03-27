@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIGHTLINE Controller</title>
+    <link rel="stylesheet" href="/shared/styles.css" />
+    <link rel="stylesheet" href="/controller/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="panel header">
+        <div class="brand">
+          <img src="/sightline_logo.png" alt="SIGHTLINE logo" />
+          <div>
+            <h1>SIGHTLINE Controller</h1>
+            <p>Unified control, device information, and service dashboard</p>
+          </div>
+        </div>
+        <div class="top-status-grid">
+          <div class="status-card"><span class="k">Online</span><span id="stOnline" class="status-value badge">-</span></div>
+          <div class="status-card"><span class="k">Target</span><span id="stTarget" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Claimed</span><span id="stClaimed" class="status-value badge">-</span></div>
+          <div class="status-card"><span class="k">Pan</span><span id="stPan" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Tilt</span><span id="stTilt" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Intensity</span><span id="stIntensity" class="status-value">-</span></div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <nav class="tabs" aria-label="Controller tabs">
+          <button id="tabControlBtn" class="tab active" type="button" data-tab="control">Control</button>
+          <button id="tabInfoBtn" class="tab" type="button" data-tab="info">Device Information</button>
+          <button id="tabServiceBtn" class="tab" type="button" data-tab="service">Service</button>
+        </nav>
+      </section>
+
+      <section id="tabControl" class="panel tab-panel active">
+        <h2>Control</h2>
+        <div class="row">
+          <label class="grow">Available fixture nodes
+            <select id="nodeSelect"></select>
+          </label>
+          <button id="refreshNodesBtn" type="button">Refresh Nodes</button>
+        </div>
+        <div class="row">
+          <button id="selectNodeBtn" type="button">Select Target</button>
+          <button id="claimBtn" type="button">Claimed / Release</button>
+        </div>
+        <div class="row">
+          <label>Interaction Mode
+            <select id="interactionMode">
+              <option value="monitor_only">Monitor Only</option>
+              <option value="live_mixed">Live Adjust</option>
+              <option value="web_override">Override/Test</option>
+            </select>
+          </label>
+          <label>Speed / Sensitivity
+            <input id="sensitivity" type="range" min="0" max="255" step="1" />
+            <span id="sensitivityVal" class="pill">0</span>
+          </label>
+        </div>
+        <div id="controlsHost"></div>
+        <p id="controlsHint" class="meta"></p>
+        <div class="row">
+          <button id="blackoutBtn" type="button" class="danger">Blackout</button>
+          <button id="homeBtn" type="button">Reset/Home (Placeholder)</button>
+        </div>
+      </section>
+
+      <section id="tabInfo" class="panel tab-panel">
+        <h2>Device Information</h2>
+        <div class="status-grid">
+          <div>Overview</div><div>Controller and target runtime state</div>
+          <div>Device ID</div><div id="dbgControllerId">-</div>
+          <div>Node / Controller Name</div><div id="dbgControllerName">SIGHTLINE Controller</div>
+          <div>Target</div><div id="ovTargetNode">-</div>
+          <div>Profile Name</div><div id="ovProfileName">-</div>
+          <div>Firmware Version</div><div id="dbgFirmwareVersion">sim-v1.0</div>
+          <div>Controller Status</div><div id="ovControllerStatus">-</div>
+          <div>Status Details</div><div id="dbgSignalHealth">-</div>
+          <div>Last Update Time</div><div id="ovLastUpdate">-</div>
+          <div>Debug</div><div>Raw and source-level diagnostics</div>
+          <div>Raw State JSON</div><pre id="dbgRawState" class="pre">-</pre>
+          <div>Last Command Source</div><div id="dbgLastCommandSource">-</div>
+          <div>Target Node ID</div><div id="dbgTargetNodeId">-</div>
+          <div>Profile Name (Debug)</div><div id="dbgProfileName">-</div>
+        </div>
+      </section>
+
+      <section id="tabService" class="panel tab-panel">
+        <h2>Service</h2>
+        <div class="row">
+          <button id="svcRebootBtn" type="button">Reboot (Placeholder)</button>
+          <button id="svcResetBtn" type="button">Reset (Placeholder)</button>
+        </div>
+        <div class="status-grid">
+          <div>Diagnostics</div><div id="svcDiagnostics">TODO: stream-level diagnostics</div>
+          <div>Maintenance Tools</div><div id="svcMaintenance">TODO: maintenance actions</div>
+          <div>Import / Export</div><div id="svcImportExport">TODO: service profile import/export</div>
+          <div>Last Backend Update</div><div id="dbgLastBackendUpdate">-</div>
+        </div>
+      </section>
+
+      <p id="msg"></p>
+    </main>
+
+    <script src="/controller/app.js"></script>
+  </body>
+</html>

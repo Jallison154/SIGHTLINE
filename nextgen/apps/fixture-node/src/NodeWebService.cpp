@@ -6,7 +6,11 @@ bool NodeWebService::begin(NodeConfig& runtimeConfig, NodeConfigStore& configSto
   _runtimeConfig = &runtimeConfig;
   _configStore = &configStore;
   _status = &status;
-  // TODO: Bind lightweight web routes using chosen web server:
+  // TODO: Bind lightweight web routes using chosen web server. Static assets live in
+  // apps/fixture-node/data/ (e.g. index.html, style.css, app.js, sightline_logo.png).
+  // After editing data/, upload the filesystem: pio run -e fixture_node_dev -t uploadfs
+  // If using AsyncWebServer: server.serveStatic("/", LittleFS, "/"); (same partition as profiles).
+  // Logo URL: GET /sightline_logo.png
   //
   //  GET /api/status
   //  -> {

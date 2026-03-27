@@ -9,6 +9,7 @@ struct ControllerStatus {
   bool discoveryReady = false;
   bool ownershipReady = false;
   bool controlTxReady = false;
+  bool webReady = false;
   String targetNodeId;
   bool ownsTarget = false;
   uint32_t controlFramesSent = 0;

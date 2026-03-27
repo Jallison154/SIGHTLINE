@@ -1,0 +1,2 @@
+# SIGHTLINE test-environment uses Python 3.10+ standard library only.
+# Optional: jsonschema if you add external schema validation later.

@@ -1,0 +1,5 @@
+[
+  { "delay_ms": 100, "controls": { "pan": 0.2, "tilt": 0.3, "intensity": 128, "zoom": 100 } },
+  { "delay_ms": 100, "controls": { "pan": 0.8, "tilt": 0.7, "intensity": 200, "iris": 200 } },
+  { "delay_ms": 100, "controls": { "pan": 0.5, "tilt": 0.5, "intensity": 255, "zoom": 180 } }
+]

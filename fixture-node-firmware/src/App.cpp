@@ -1,9 +1,7 @@
 #include "App.h"
 
 void App::begin() {
-  // TODO(HW): Configure actual Ethernet board/platform pins and PHY settings.
-  // TODO(HW): Initialize ETH with board-specific clock mode and PHY address.
-
+  Serial.println("[app] begin");
   _dmxBuffer.clear();
   _status.setUptime(0);
 
@@ -13,12 +11,19 @@ void App::begin() {
   const bool configOk = _configStore.loadPersisted(persistedConfig, usedDefaults);
   _configStore.applyToRuntime(persistedConfig, _config);
   _status.markConfigLoaded(configOk || usedDefaults);
-
-  // TODO(HW): Set based on real ETH link state.
-  _status.markEthernetReady(true);
+  const bool firstBootSetupMode = (!configOk && usedDefaults);
+  Serial.printf("[cfg] loaded=%s defaults=%s firstBootSetup=%s nodeName=%s\n", configOk ? "true" : "false",
+                usedDefaults ? "true" : "false", firstBootSetupMode ? "true" : "false", _config.nodeName.c_str());
+  Serial.printf("[cfg] networkMode=%s dhcp=%s staticIp=%s\n",
+                _config.networkMode == NodeConfig::NetworkMode::WiFiStation ? "wifi-station" : "ethernet",
+                _config.dhcp ? "true" : "false", _config.staticIp.c_str());
+  _network.begin(_config, firstBootSetupMode);
+  _status.markSetupMode(firstBootSetupMode);
 
   if (!_artNetReceiver.begin(_config.universe)) {
     Serial.println("ArtNetReceiver init failed");
+  } else {
+    Serial.printf("[artnet] listening universe=%u\n", _config.universe);
   }
   DmxOutputConfig dmxConfig;
   // TODO(HW): Confirm UART index + TX + DE/RE pins for final fixture-node board.
@@ -28,13 +33,26 @@ void App::begin() {
   dmxConfig.framePeriodUs = 25000;  // ~40Hz
   if (!_dmxOutput.begin(dmxConfig)) {
     Serial.println("DmxOutput init failed");
+  } else {
+    Serial.printf("[dmx] uart=%u txPin=%d framePeriodUs=%lu\n", dmxConfig.uartIndex, dmxConfig.txPin, dmxConfig.framePeriodUs);
   }
-  const bool webOk = _webUi.begin(_config, _configStore, _status);
+  const bool webOk = _webUi.begin(_config, _configStore, _status, _network);
   _status.markWebUiReady(webOk);
+  Serial.printf("[web] server=%s\n", webOk ? "ready" : "failed");
 }
 
 void App::tick(uint32_t nowMs) {
   _status.setUptime(nowMs);
+  _network.tick(nowMs, _config);
+  const NetworkState& net = _network.state();
+  _status.markEthernetReady(net.mode == "ethernet" && net.connected);
+  _status.markNetworkConnected(net.connected);
+  _status.markSetupMode(net.setupMode);
+  _status.setNetworkMode(net.mode);
+  _status.setNetworkState(net.statusText);
+  _status.setNetworkIp(net.ip);
+  _status.setNetworkSsid(net.ssid);
+
   serviceArtNet(nowMs);
   _dmxOutput.tick(nowMs, _dmxBuffer);
   _status.setDmxFramesOutput(_dmxOutput.framesOutput());

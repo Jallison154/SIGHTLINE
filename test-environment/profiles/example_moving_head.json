@@ -1,0 +1,21 @@
+{
+  "id": "sightline_demo_mh_16ch",
+  "fixture_name": "Demo Moving Head",
+  "manufacturer": "Sightline",
+  "mode_name": "16ch Standard",
+  "channel_count": 16,
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2, "invert": false },
+    "tilt": { "coarse": 3, "fine": 4, "invert": false },
+    "dimmer": { "channel": 5 },
+    "shutter": { "channel": 6 },
+    "iris": { "channel": 7 },
+    "zoom": { "channel": 8 },
+    "focus": { "channel": 9 },
+    "color": { "channel": 10 }
+  },
+  "defaults": {
+    "shutter_open": true,
+    "dimmer": 255
+  }
+}

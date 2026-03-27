@@ -1,0 +1,29 @@
+{
+  "name": "SIGHTLINE Fixture Node",
+  "version": "dev",
+  "home_assistant_domain": "sightline",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "assets/esp32_eth_dev/bootloader.bin",
+          "offset": 4096
+        },
+        {
+          "path": "assets/esp32_eth_dev/partitions.bin",
+          "offset": 32768
+        },
+        {
+          "path": "assets/esp32_eth_dev/firmware.bin",
+          "offset": 65536
+        },
+        {
+          "path": "assets/esp32_eth_dev/littlefs.bin",
+          "offset": 1638400
+        }
+      ]
+    }
+  ]
+}

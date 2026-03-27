@@ -1,0 +1,27 @@
+{
+  "id": "sightline_demo_limited",
+  "fixture_name": "Demo With Pan/Tilt Limits",
+  "manufacturer": "Sightline",
+  "mode_name": "Limited sweep",
+  "channel_count": 8,
+  "channels": {
+    "pan": {
+      "coarse": 1,
+      "fine": 2,
+      "invert": false,
+      "limits": { "min": 8192, "max": 57344 }
+    },
+    "tilt": {
+      "coarse": 3,
+      "fine": 4,
+      "invert": true,
+      "limits": { "min": 0, "max": 65535 }
+    },
+    "dimmer": { "channel": 5, "limits": { "min": 10, "max": 250 } },
+    "zoom": { "channel": 6 }
+  },
+  "defaults": {
+    "shutter_open": true,
+    "dimmer": 200
+  }
+}

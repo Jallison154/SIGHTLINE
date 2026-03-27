@@ -6,6 +6,7 @@
 #include "ConfigStore.h"
 #include "DmxBuffer.h"
 #include "DmxOutput.h"
+#include "NetworkManager.h"
 #include "StatusTracker.h"
 #include "WebUiServer.h"
 
@@ -22,6 +23,7 @@ class App {
   DmxBuffer _dmxBuffer;
   ArtNetReceiver _artNetReceiver;
   DmxOutput _dmxOutput;
+  NetworkManager _network;
   StatusTracker _status;
   WebUiServer _webUi;
 };

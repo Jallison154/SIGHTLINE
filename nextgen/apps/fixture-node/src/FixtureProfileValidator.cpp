@@ -15,9 +15,11 @@ bool FixtureProfileValidator::validate(const FixtureProfile& p, String& outError
     outError = "channel_count must be 1..512";
     return false;
   }
-  if (!inRange(p.pan.coarse, 1, p.channelCount) || !inRange(p.pan.fine, 1, p.channelCount) ||
-      !inRange(p.tilt.coarse, 1, p.channelCount) || !inRange(p.tilt.fine, 1, p.channelCount)) {
-    outError = "pan/tilt coarse+fine must be within channel_count";
+  const bool panFineValid = (p.pan.fine == 0) || inRange(p.pan.fine, 1, p.channelCount);
+  const bool tiltFineValid = (p.tilt.fine == 0) || inRange(p.tilt.fine, 1, p.channelCount);
+  if (!inRange(p.pan.coarse, 1, p.channelCount) || !inRange(p.tilt.coarse, 1, p.channelCount) || !panFineValid ||
+      !tiltFineValid) {
+    outError = "pan/tilt coarse must be within channel_count; fine is optional and must be valid when provided";
     return false;
   }
   if (p.pan.hasLimits && p.pan.minValue > p.pan.maxValue) {

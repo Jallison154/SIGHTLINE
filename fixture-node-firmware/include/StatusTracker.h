@@ -4,6 +4,12 @@
 
 struct NodeStatus {
   bool ethernetReady = false;
+  bool networkConnected = false;
+  bool setupMode = false;
+  String networkMode = "ethernet";
+  String networkState = "booting";
+  String networkIp = "";
+  String networkSsid = "";
   bool webUiReady = false;
   bool configLoaded = false;
   bool artNetHasSignal = false;
@@ -21,6 +27,12 @@ struct NodeStatus {
 class StatusTracker {
  public:
   void markEthernetReady(bool ready) { _status.ethernetReady = ready; }
+  void markNetworkConnected(bool connected) { _status.networkConnected = connected; }
+  void markSetupMode(bool setupMode) { _status.setupMode = setupMode; }
+  void setNetworkMode(const String& mode) { _status.networkMode = mode; }
+  void setNetworkState(const String& state) { _status.networkState = state; }
+  void setNetworkIp(const String& ip) { _status.networkIp = ip; }
+  void setNetworkSsid(const String& ssid) { _status.networkSsid = ssid; }
   void markWebUiReady(bool ready) { _status.webUiReady = ready; }
   void markConfigLoaded(bool loaded) { _status.configLoaded = loaded; }
   void setArtNetSignal(bool hasSignal) { _status.artNetHasSignal = hasSignal; }

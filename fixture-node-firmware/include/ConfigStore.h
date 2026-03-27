@@ -3,8 +3,19 @@
 #include <Arduino.h>
 
 struct NodeConfig {
+  enum class NetworkMode : uint8_t {
+    Ethernet = 0,
+    WiFiStation = 1,
+  };
+
   String nodeName = "SIGHTLINE-Node";
   String fixtureLabel = "";
+  NetworkMode networkMode = NetworkMode::Ethernet;
+  String wifiSsid = "";
+  String wifiPassword = "";
+  bool fallbackToSetupAp = true;
+  String setupApSsid = "SIGHTLINE-Setup";
+  String setupApPassword = "";
   uint16_t universe = 0;
   uint16_t dmxStartAddress = 1;
   bool dhcp = true;
@@ -15,7 +26,7 @@ struct NodeConfig {
 
 class ConfigStore {
  public:
-  static constexpr uint16_t kCurrentSchemaVersion = 1;
+  static constexpr uint16_t kCurrentSchemaVersion = 2;
 
   bool begin();
   NodeConfig defaults() const;

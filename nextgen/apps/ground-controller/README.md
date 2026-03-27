@@ -15,6 +15,8 @@ Scaffolded modular controller architecture for SIGHTLINE v2.
 - `ButtonInputService` - button input layer
 - `ControllerConfigStore` - persisted config load/save/validate
 - `ControllerStatus` - runtime status for future UI/API
+- `ControllerRuntimeState` - shared source-of-truth control + mode state
+- `ControllerWebService` - controller-side test/service web UI + APIs
 
 ## Control Loop Model
 
@@ -30,3 +32,17 @@ Scaffolded modular controller architecture for SIGHTLINE v2.
 This keeps hardware input separated from motion and protocol logic.
 
 All hardware-specific assumptions are marked with `TODO(HW)`.
+
+## Controller Test Web UI
+
+Ground controller now serves a lightweight UI from `apps/ground-controller/data/` for:
+
+- live test controls (pan/tilt/intensity/iris/zoom)
+- target selection + claim/release scaffolding
+- status and service actions (blackout, home placeholder)
+
+Upload filesystem assets:
+
+```bash
+pio run -e ground_controller_dev -t uploadfs
+```

@@ -15,8 +15,14 @@ bool ControlCodec::encode(const ControlFrameV1& f, String& outJson) {
   doc["sent_at_ms"] = f.sentAtMs;
 
   JsonObject c = doc.createNestedObject("controls");
-  if (f.controls.hasPan) c["pan"] = f.controls.pan;
-  if (f.controls.hasTilt) c["tilt"] = f.controls.tilt;
+  if (f.controls.hasPan) {
+    c["pan16"] = f.controls.pan16;
+    c["pan"] = f.controls.pan;  // legacy normalized alias
+  }
+  if (f.controls.hasTilt) {
+    c["tilt16"] = f.controls.tilt16;
+    c["tilt"] = f.controls.tilt;  // legacy normalized alias
+  }
   if (f.controls.hasIntensity) c["intensity"] = f.controls.intensity;
   if (f.controls.hasIris) c["iris"] = f.controls.iris;
   if (f.controls.hasZoom) c["zoom"] = f.controls.zoom;
@@ -54,10 +60,22 @@ bool ControlCodec::decode(const String& json, ControlFrameV1& outFrame, String& 
 
   JsonObject c = doc["controls"];
   if (!c.isNull()) {
-    outFrame.controls.hasPan = c.containsKey("pan");
-    outFrame.controls.pan = c["pan"] | 0.5f;
-    outFrame.controls.hasTilt = c.containsKey("tilt");
-    outFrame.controls.tilt = c["tilt"] | 0.5f;
+    outFrame.controls.hasPan = c.containsKey("pan16") || c.containsKey("pan");
+    if (c.containsKey("pan16")) {
+      outFrame.controls.pan16 = c["pan16"] | 32768;
+      outFrame.controls.pan = static_cast<float>(outFrame.controls.pan16) / 65535.0f;
+    } else {
+      outFrame.controls.pan = c["pan"] | 0.5f;
+      outFrame.controls.pan16 = static_cast<uint16_t>(outFrame.controls.pan * 65535.0f);
+    }
+    outFrame.controls.hasTilt = c.containsKey("tilt16") || c.containsKey("tilt");
+    if (c.containsKey("tilt16")) {
+      outFrame.controls.tilt16 = c["tilt16"] | 32768;
+      outFrame.controls.tilt = static_cast<float>(outFrame.controls.tilt16) / 65535.0f;
+    } else {
+      outFrame.controls.tilt = c["tilt"] | 0.5f;
+      outFrame.controls.tilt16 = static_cast<uint16_t>(outFrame.controls.tilt * 65535.0f);
+    }
     outFrame.controls.hasIntensity = c.containsKey("intensity");
     outFrame.controls.intensity = c["intensity"] | 0;
     outFrame.controls.hasIris = c.containsKey("iris");

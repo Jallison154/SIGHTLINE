@@ -14,14 +14,23 @@ void set16(uint8_t* dmx, uint16_t coarse, uint16_t v) {
   dmx[coarse - 1] = static_cast<uint8_t>((v >> 8) & 0xFF);
   dmx[coarse] = static_cast<uint8_t>(v & 0xFF);
 }
+void set16Or8(uint8_t* dmx, uint16_t coarse, uint16_t fine, uint16_t v) {
+  if (coarse == 0 || coarse > 512) return;
+  if (fine > 0 && fine <= 512 && coarse < 512) {
+    set16(dmx, coarse, v);
+    return;
+  }
+  // Coarse-only profile: downscale uint16 pan/tilt to 8-bit high byte.
+  set8(dmx, coarse, static_cast<uint8_t>((v >> 8) & 0xFF));
+}
 }
 
 void AbstractToDmxMapper::map(const AbstractControls& c, const FixtureProfile& p, uint8_t* outUniverse, uint16_t outSize) {
   if (!outUniverse || outSize < 512) return;
   std::memset(outUniverse, 0, 512);
 
-  if (c.hasPan) set16(outUniverse, p.pan.coarse, static_cast<uint16_t>(c.pan * 65535.0f));
-  if (c.hasTilt) set16(outUniverse, p.tilt.coarse, static_cast<uint16_t>(c.tilt * 65535.0f));
+  if (c.hasPan) set16Or8(outUniverse, p.pan.coarse, p.pan.fine, c.pan16);
+  if (c.hasTilt) set16Or8(outUniverse, p.tilt.coarse, p.tilt.fine, c.tilt16);
   if (p.intensity.channel) set8(outUniverse, p.intensity.channel, c.hasIntensity ? c.intensity : p.defaultIntensity);
   if (p.iris.channel) set8(outUniverse, p.iris.channel, c.hasIris ? c.iris : p.defaultIris);
   if (p.zoom.channel) set8(outUniverse, p.zoom.channel, c.hasZoom ? c.zoom : p.defaultZoom);

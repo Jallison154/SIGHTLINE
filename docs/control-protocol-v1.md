@@ -33,8 +33,8 @@ Required fields:
 
 `controls` values:
 
-- `pan` (float `0.0..1.0`)
-- `tilt` (float `0.0..1.0`)
+- `pan16` (uint16 `0..65535`)
+- `tilt16` (uint16 `0..65535`)
 - `intensity` (uint8 `0..255`)
 - `iris` (uint8 `0..255`)
 - `zoom` (uint8 `0..255`)
@@ -42,6 +42,14 @@ Required fields:
 - `shutter` (uint8 `0..255`)
 - `color` (uint8 `0..255`)
 - `extra` (optional object for future controls)
+
+Notes:
+
+- `0..65535` is the **valid value range** for each 16-bit axis value.
+- That range contains **65536 total steps** (`2^16` discrete positions).
+- Fixture DMX output still uses two 8-bit bytes:
+  - coarse (MSB) `0..255`
+  - fine (LSB) `0..255`
 
 ## 3) Update Rate Expectations
 

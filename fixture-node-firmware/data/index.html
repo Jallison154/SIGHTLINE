@@ -8,15 +8,48 @@
 </head>
 <body>
   <main class="card">
-    <h1>SIGHTLINE Fixture Node</h1>
-    <p class="sub">Configure network + Art-Net + DMX output.</p>
+    <header class="header">
+      <img src="/sightline_logo.png" alt="SIGHTLINE" width="180" decoding="async" />
+      <h1>SIGHTLINE</h1>
+    </header>
+    <p class="sub">Fixture node setup · Choose network mode and save device settings.</p>
+    <div id="setupBanner" class="banner" hidden>
+      <strong>First-time setup mode:</strong> This node is hosting a setup Wi-Fi access point.
+      Configure network below, then use <em>Save + Apply</em>.
+    </div>
 
     <section>
-      <h2>Configuration</h2>
+      <h2>Device</h2>
       <label>Node name <input id="nodeName" maxlength="32" /></label>
-      <label>Fixture label (optional) <input id="fixtureLabel" maxlength="64" /></label>
-      <label>Art-Net universe <input id="universe" type="number" min="0" max="32767" /></label>
-      <label>DMX start address <input id="dmxStartAddress" type="number" min="1" max="512" /></label>
+      <label>Fixture label <input id="fixtureLabel" maxlength="64" placeholder="Optional" /></label>
+    </section>
+
+    <section>
+      <h2>Network</h2>
+      <label>Network mode
+        <select id="networkMode">
+          <option value="ethernet">Ethernet</option>
+          <option value="wifi-station">Wi-Fi Station</option>
+        </select>
+      </label>
+
+      <div id="ethGroup" class="mode-group">
+        <p class="group-title">Ethernet settings</p>
+        <p class="hint">Use DHCP for most networks. Use static only when required.</p>
+      </div>
+
+      <div id="wifiGroup" class="mode-group">
+        <p class="group-title">Wi-Fi settings</p>
+        <label>Wi-Fi SSID <input id="wifiSsid" maxlength="32" placeholder="Network name" /></label>
+        <label>Wi-Fi password <input id="wifiPassword" type="password" maxlength="63" placeholder="Leave unchanged to keep saved password" /></label>
+        <label class="check"><input id="fallbackToSetupAp" type="checkbox" checked /> Return to setup AP if Wi-Fi fails</label>
+      </div>
+
+      <details class="mode-group">
+        <summary>Setup AP options (advanced)</summary>
+        <label>Setup AP SSID <input id="setupApSsid" maxlength="32" /></label>
+        <label>Setup AP password (optional, 8+ chars) <input id="setupApPassword" type="password" maxlength="63" placeholder="Open AP when blank" /></label>
+      </details>
 
       <label>IP mode
         <select id="ipMode">
@@ -25,11 +58,17 @@
         </select>
       </label>
 
-      <div id="staticGroup">
+      <div id="staticGroup" class="mode-group">
         <label>Static IP <input id="staticIp" inputmode="numeric" /></label>
         <label>Subnet mask <input id="subnetMask" inputmode="numeric" /></label>
         <label>Gateway <input id="gateway" inputmode="numeric" /></label>
       </div>
+    </section>
+
+    <section>
+      <h2>DMX / Art-Net</h2>
+      <label>Art-Net universe <input id="universe" type="number" min="0" max="32767" /></label>
+      <label>DMX start address <input id="dmxStartAddress" type="number" min="1" max="512" /></label>
 
       <div class="buttons">
         <button id="saveBtn" type="button">Save</button>
@@ -39,8 +78,13 @@
     </section>
 
     <section>
-      <h2>Signal status</h2>
+      <h2>Status</h2>
       <div class="status-grid">
+        <div>Network mode</div><div id="netMode">-</div>
+        <div>Network state</div><div id="netState">-</div>
+        <div>Network IP</div><div id="netIp">-</div>
+        <div>Setup mode</div><div id="netSetupMode">-</div>
+        <div>Wi-Fi SSID</div><div id="netSsid">-</div>
         <div>Signal</div><div id="sigState">-</div>
         <div>Universe</div><div id="sigUniverse">-</div>
         <div>Frame interval</div><div id="sigInterval">-</div>

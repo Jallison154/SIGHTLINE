@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIGHTLINE Fixture Node</title>
+    <link rel="stylesheet" href="/shared/styles.css" />
+    <link rel="stylesheet" href="/node/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="panel header">
+        <div class="brand">
+          <img src="/sightline_logo.png" alt="SIGHTLINE logo" />
+          <div>
+            <h1>SIGHTLINE Fixture Node</h1>
+            <p id="headerNodeName">Node: -</p>
+          </div>
+        </div>
+        <div class="top-status-grid">
+          <div class="status-card"><span class="k">Online</span><span id="stOnline" class="status-value badge">-</span></div>
+          <div class="status-card"><span class="k">Target</span><span id="stTarget" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Claimed</span><span id="stClaimed" class="status-value badge">-</span></div>
+          <div class="status-card"><span class="k">Pan</span><span id="stPan" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Tilt</span><span id="stTilt" class="status-value">-</span></div>
+          <div class="status-card"><span class="k">Intensity</span><span id="stIntensity" class="status-value">-</span></div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <nav class="tabs" aria-label="Node tabs">
+          <button id="tabControlBtn" class="tab active" type="button" data-tab="control">Control</button>
+          <button id="tabInfoBtn" class="tab" type="button" data-tab="info">Device Information</button>
+          <button id="tabServiceBtn" class="tab" type="button" data-tab="service">Service</button>
+        </nav>
+      </section>
+
+      <section id="tabControl" class="panel tab-panel active">
+        <h2>Control</h2>
+        <div class="status-grid">
+          <div>DMX (1-16)</div><div id="stDmxSubset">-</div>
+          <div>Last Control Update</div><div id="stControlUpdate">-</div>
+          <div>Signal Status</div><div id="stSignal">-</div>
+        </div>
+      </section>
+
+      <section id="tabInfo" class="panel tab-panel">
+        <h2>Device Information</h2>
+        <div class="status-grid">
+          <div>Overview</div><div>Fixture node runtime and profile status</div>
+          <div>Node ID</div><div id="infoNodeId">-</div>
+          <div>Node / Controller Name</div><div id="infoNodeName">-</div>
+          <div>IP Address</div><div id="infoIp">-</div>
+          <div>Firmware Version</div><div id="infoFirmware">-</div>
+          <div>Target</div><div id="infoTarget">-</div>
+          <div>Claimed</div><div id="infoController">-</div>
+          <div>Profile Name</div><div id="currentProfileName">-</div>
+          <div>Last Update Time</div><div id="infoLastUpdate">-</div>
+          <div>Status Details</div><div id="infoClaimStatus">-</div>
+          <div>Debug</div><div>Raw node status and profile details</div>
+          <div>Raw/Current State</div><pre id="dbgNodeState" class="pre">-</pre>
+        </div>
+      </section>
+
+      <section id="tabService" class="panel tab-panel">
+        <h2>Service</h2>
+        <h3>Configuration</h3>
+        <label>Node name <input id="cfgNodeName" maxlength="32" /></label>
+        <label>Fixture label <input id="cfgFixtureLabel" maxlength="64" /></label>
+        <div class="row">
+          <label>Universe <input id="cfgUniverse" type="number" min="0" max="32767" /></label>
+          <label>DMX start address <input id="cfgDmxStart" type="number" min="1" max="512" /></label>
+        </div>
+        <label class="toggle">
+          <input id="cfgDhcp" type="checkbox" />
+          <span>DHCP enabled</span>
+        </label>
+        <div id="staticIpFields">
+          <label>Static IP <input id="cfgStaticIp" placeholder="192.168.1.100" /></label>
+          <label>Subnet mask <input id="cfgSubnet" placeholder="255.255.255.0" /></label>
+          <label>Gateway <input id="cfgGateway" placeholder="192.168.1.1" /></label>
+        </div>
+        <div class="row">
+          <button id="saveConfigBtn" type="button">Save Config</button>
+          <button id="rebootBtn" type="button">Reboot (Placeholder)</button>
+        </div>
+        <h3>Fixture Profile</h3>
+        <label>Saved profiles
+          <select id="profileSelect"></select>
+        </label>
+        <button id="applyProfileBtn" type="button">Apply Profile</button>
+        <h3>Profile Editor (Simple)</h3>
+        <div class="row">
+          <label>Pan coarse <input id="pfPanCoarse" type="number" min="1" max="512" /></label>
+          <label>Pan fine <input id="pfPanFine" type="number" min="1" max="512" /></label>
+        </div>
+        <div class="row">
+          <label>Tilt coarse <input id="pfTiltCoarse" type="number" min="1" max="512" /></label>
+          <label>Tilt fine <input id="pfTiltFine" type="number" min="1" max="512" /></label>
+        </div>
+        <div class="row">
+          <label>Intensity <input id="pfIntensity" type="number" min="0" max="512" /></label>
+          <label>Iris <input id="pfIris" type="number" min="0" max="512" /></label>
+        </div>
+        <div class="row">
+          <label>Zoom <input id="pfZoom" type="number" min="0" max="512" /></label>
+          <label>Focus <input id="pfFocus" type="number" min="0" max="512" /></label>
+        </div>
+        <div class="row">
+          <label>Shutter <input id="pfShutter" type="number" min="0" max="512" /></label>
+          <label>Color <input id="pfColor" type="number" min="0" max="512" /></label>
+        </div>
+        <div class="row">
+          <button id="saveProfileBtn" type="button">Save Profile</button>
+          <button id="exportProfileBtn" type="button">Export Profile JSON</button>
+        </div>
+        <div class="row">
+          <button id="importProfileBtn" type="button">Import Profile (Placeholder)</button>
+          <input id="importProfileFile" type="file" accept=".json,application/json" />
+        </div>
+        <h3>Service Tools</h3>
+        <div class="status-grid">
+          <div>Reset</div><div>Reset (Placeholder)</div>
+          <div>Diagnostics</div><div>Diagnostics (Placeholder)</div>
+          <div>Maintenance</div><div>Maintenance tools (Placeholder)</div>
+        </div>
+      </section>
+      <p id="msg"></p>
+    </main>
+
+    <script src="/node/app.js"></script>
+  </body>
+</html>

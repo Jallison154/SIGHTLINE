@@ -1,0 +1,69 @@
+.control-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 104px 150px;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #263445;
+  border-radius: 10px;
+  background: #131b26;
+}
+
+.control-row .value {
+  color: #78d7ff;
+  text-align: right;
+  font-size: 1.02rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.control-row.unsupported {
+  opacity: 0.45;
+}
+
+.control-row.unsupported input {
+  pointer-events: none;
+}
+
+.pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #385274;
+  font-size: 0.8rem;
+  color: var(--subtle);
+}
+
+.pill.mode {
+  margin-left: 0;
+}
+
+.meta {
+  margin-top: 8px;
+}
+
+#msg {
+  min-height: 1.4em;
+  color: #9bdcff;
+  font-size: 0.95rem;
+}
+
+.pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #111823;
+  border: 1px solid #263445;
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+@media (max-width: 760px) {
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+}

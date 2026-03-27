@@ -1,0 +1,27 @@
+# PlatformIO
+**/.pio/
+.pio/
+
+# Build artifacts
+*.o
+*.a
+*.elf
+*.map
+*.bin
+
+# Logs
+*.log
+**/logs/
+
+# Editor/system
+.vscode/
+.DS_Store
+
+# Common JS build folders
+node_modules/
+build/
+dist/
+
+# Python cache artifacts
+__pycache__/
+*.pyc

@@ -5,6 +5,8 @@
 #include "ButtonInputService.h"
 #include "ControllerConfigStore.h"
 #include "ControllerNetworkService.h"
+#include "ControllerRuntimeState.h"
+#include "ControllerWebService.h"
 #include "ControllerStatus.h"
 #include "ControlState.h"
 #include "DiscoveryService.h"
@@ -34,7 +36,9 @@ class ControllerApp {
   sightline_v2::ButtonInputService _buttons;
   sightline_v2::PanTiltMotionEngine _motion;
   sightline_v2::TargetSelector _targetSelector;
-  sightline_v2::ControlState _controlState;
+  sightline_v2::ControllerRuntimeState _runtimeState;
+  sightline_v2::ControllerWebService _web;
+  sightline_v2::ControlState _hardwareState;
   String _controllerId = "controller-001";
   String _targetNodeId;
   uint32_t _lastTickMs = 0;

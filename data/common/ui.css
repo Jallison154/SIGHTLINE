@@ -1,0 +1,156 @@
+:root {
+  --bg: #0f141b;
+  --panel: #171f2a;
+  --panel-border: #263445;
+  --text: #e7eef7;
+  --subtle: #9cb0c7;
+  --accent: #00aaff;
+  --danger: #ff4d5e;
+  --radius: 12px;
+  --gap: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.5vw, 22px);
+  display: grid;
+  gap: var(--gap);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.brand img {
+  width: 74px;
+  height: auto;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 10px rgba(0, 170, 255, 0.3));
+}
+
+h1 {
+  margin: 0;
+  color: var(--accent);
+}
+
+h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+}
+
+p {
+  margin: 4px 0 0 0;
+  color: var(--subtle);
+}
+
+.header-status {
+  display: grid;
+  gap: 8px;
+}
+
+.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.header-status > div {
+  background: #121924;
+  border: 1px solid #253143;
+  border-radius: 9px;
+  padding: 8px;
+}
+
+.k {
+  display: block;
+  color: var(--subtle);
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+label {
+  display: block;
+  margin: 8px 0;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1px solid #34465f;
+  background: #121924;
+  color: var(--text);
+  padding: 10px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button.danger {
+  border-color: #64323a;
+  color: #ffd9de;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.row .grow {
+  grid-column: 1 / -1;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+
+.meta {
+  margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .header-status,
+  .row,
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}

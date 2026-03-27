@@ -10,6 +10,12 @@ SIGHTLINE moves to an abstract networked control model:
 
 This decouples operator input from fixture DMX personality and improves scalability.
 
+Core DMX assumptions:
+
+- Each DMX channel is always an 8-bit value (`0..255`).
+- High channel-count fixtures (including `50+` channel modes) are supported by a full universe buffer.
+- Fixture node owns translation from abstract control state -> mapped DMX channel bytes.
+
 ## 2) Network Communication Model
 
 ### Message Families
@@ -30,7 +36,15 @@ This decouples operator input from fixture DMX personality and improves scalabil
 
 - `session_id`, `controller_id`, `target_node_id`
 - monotonic `frame_seq`, `sent_at_ms`
-- abstract channels map (`pan_norm`, `tilt_norm`, `intensity`, etc.)
+- abstract channels map where:
+  - `pan16` / `tilt16` are canonical uint16 values (`0..65535`)
+  - most other controls remain uint8 (`0..255`)
+
+Pan/tilt output mapping:
+
+- Node uses fixture-profile mapping mode per axis:
+  - 16-bit mode (`coarse` + `fine`): coarse = high byte (`value >> 8`), fine = low byte (`value & 0xFF`)
+  - 8-bit mode (`coarse` only): output high byte (`value >> 8`) as downscaled axis value
 
 ## 3) Discovery Model
 
@@ -55,6 +69,9 @@ This decouples operator input from fixture DMX personality and improves scalabil
 - Runtime switchable active profile.
 - Import/export endpoints with schema + runtime validation.
 - Safe fallback profile if active profile invalid.
+- Profiles support sparse mappings and optional unsupported controls.
+- Profiles can include default values for arbitrary channels (useful for large/sparse personalities).
+- Profiles support both 8-bit and 16-bit pan/tilt mappings while controller state remains 16-bit abstract pan/tilt.
 
 ## 6) Scalable Repo Structure
 

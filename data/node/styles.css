@@ -1,0 +1,29 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.meta {
+  margin-bottom: 8px;
+}
+
+#msg {
+  min-height: 1.4em;
+  color: #9bdcff;
+  font-size: 0.95rem;
+}
+
+#stDmxSubset {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.92rem;
+  color: #d5ecff;
+  line-height: 1.35;
+  word-break: break-word;
+}

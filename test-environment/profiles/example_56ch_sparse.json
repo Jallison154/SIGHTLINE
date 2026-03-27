@@ -1,0 +1,35 @@
+{
+  "id": "sightline_demo_sparse_56ch",
+  "fixture_name": "Demo Beam Wash XL",
+  "manufacturer": "Sightline",
+  "mode_name": "56ch Extended Sparse",
+  "channel_count": 56,
+  "channels": {
+    "pan": { "coarse": 1, "fine": 2 },
+    "tilt": { "coarse": 3, "fine": 4 },
+    "intensity": { "channel": 12 },
+    "shutter": { "channel": 15 },
+    "zoom": { "channel": 31 },
+    "focus": { "channel": 32 },
+    "color": { "channel": 45 }
+  },
+  "unsupported_controls": ["iris"],
+  "defaults": {
+    "intensity": 200,
+    "shutter": 255,
+    "channel_values": {
+      "5": 10,
+      "6": 180,
+      "7": 64,
+      "8": 90,
+      "20": 127,
+      "50": 35,
+      "51": 120,
+      "56": 255
+    }
+  },
+  "logical_mappings": {
+    "gobo": { "channel": 40 },
+    "prism": { "channel": 41 }
+  }
+}

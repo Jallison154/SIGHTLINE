@@ -27,6 +27,11 @@ void ControllerApp::begin() {
   _controlTx.setControllerId(_controllerId);
   _status.controlTxReady = true;
 
+  // Controller web UI for test-control + service workflows.
+  // TODO(HW): secure access/auth when deployed on shared production networks.
+  _web.begin(_runtimeState, _status, _targetSelector, _ownershipClient, _controllerId);
+  _status.webReady = _web.ready();
+
   sightline_v2::DiscoveryMessageV1 self;
   self.deviceId = _controllerId;       // TODO(HW): derive from MAC or persisted unique ID.
   self.deviceType = sightline_v2::DiscoveryDeviceType::kController;
@@ -44,6 +49,8 @@ void ControllerApp::tick(uint32_t nowMs) {
   _discovery.tick(nowMs);
   readControls(nowMs);
   updateTargeting(nowMs);
+  _web.tick();
+  _status.webReady = _web.ready();
   publishControlFrameIfDue(nowMs);
 }
 
@@ -62,14 +69,15 @@ void ControllerApp::readControls(uint32_t nowMs) {
   const auto f = _faders.current();
   const auto b = _buttons.current();
 
-  _controlState.panNorm = _motion.panNorm();
-  _controlState.tiltNorm = _motion.tiltNorm();
-  _controlState.intensity = f.intensity;
-  _controlState.iris = f.iris;
-  _controlState.zoom = f.zoom;
-  _controlState.focus = f.focus;
-  _controlState.shutter = b.shutterOpen ? 255 : 0;
-  _controlState.color = b.color;
+  _hardwareState.panNorm = _motion.panNorm();
+  _hardwareState.tiltNorm = _motion.tiltNorm();
+  _hardwareState.intensity = f.intensity;
+  _hardwareState.iris = f.iris;
+  _hardwareState.zoom = f.zoom;
+  _hardwareState.focus = f.focus;
+  _hardwareState.shutter = b.shutterOpen ? 255 : 0;
+  _hardwareState.color = b.color;
+  _runtimeState.applyHardwareState(_hardwareState, nowMs);
 }
 
 void ControllerApp::updateTargeting(uint32_t nowMs) {
@@ -80,9 +88,17 @@ void ControllerApp::updateTargeting(uint32_t nowMs) {
     _controlTx.setTargetNodeId(_targetNodeId);
     _controlTx.setTargetIp(_targetSelector.targetIp());
     _status.targetNodeId = _targetNodeId;
+    _runtimeState.setActiveTargetNodeId(_targetNodeId, "selector", nowMs);
   }
 
-  // TODO: Send claim/release/heartbeat messages and process responses.
+  // TODO(NET): Send claim/release/heartbeat messages and process responses.
+  // For now this keeps web claim/release intent available for diagnostics/UI.
+  if (_runtimeState.status().claimRequested) {
+    // Placeholder until claim transport is hooked up.
+  }
+  if (_runtimeState.status().releaseRequested) {
+    // Placeholder until release transport is hooked up.
+  }
   _status.ownsTarget = _ownershipClient.isOwner();
 }
 
@@ -92,28 +108,31 @@ void ControllerApp::publishControlFrameIfDue(uint32_t nowMs) {
   if ((nowMs - lastTxMs) < kTxPeriodMs) return;
   lastTxMs = nowMs;
 
-  if (!_ownershipClient.isOwner()) return;
+  const bool allowTxFromWebTools = _runtimeState.status().claimRequested;
+  if (!_ownershipClient.isOwner() && !allowTxFromWebTools) return;
 
   sightline_v2::ControlFrameV1 frame;
   frame.sessionId = "session-a";  // TODO: derive session from controller runtime.
   frame.frameSeq = nowMs;
   frame.sentAtMs = nowMs;
   frame.controls.hasPan = true;
-  frame.controls.pan = _controlState.panNorm;
+  frame.controls.pan16 = static_cast<uint16_t>(_runtimeState.controls().panNorm * 65535.0f);
+  frame.controls.pan = _runtimeState.controls().panNorm;
   frame.controls.hasTilt = true;
-  frame.controls.tilt = _controlState.tiltNorm;
+  frame.controls.tilt16 = static_cast<uint16_t>(_runtimeState.controls().tiltNorm * 65535.0f);
+  frame.controls.tilt = _runtimeState.controls().tiltNorm;
   frame.controls.hasIntensity = true;
-  frame.controls.intensity = _controlState.intensity;
+  frame.controls.intensity = _runtimeState.status().blackout ? 0 : _runtimeState.controls().intensity;
   frame.controls.hasIris = true;
-  frame.controls.iris = _controlState.iris;
+  frame.controls.iris = _runtimeState.controls().iris;
   frame.controls.hasZoom = true;
-  frame.controls.zoom = _controlState.zoom;
+  frame.controls.zoom = _runtimeState.controls().zoom;
   frame.controls.hasFocus = true;
-  frame.controls.focus = _controlState.focus;
+  frame.controls.focus = _runtimeState.controls().focus;
   frame.controls.hasShutter = true;
-  frame.controls.shutter = _controlState.shutter;
+  frame.controls.shutter = _runtimeState.controls().shutter;
   frame.controls.hasColor = true;
-  frame.controls.color = _controlState.color;
+  frame.controls.color = _runtimeState.controls().color;
   if (_controlTx.sendFrame(frame)) {
     _status.controlFramesSent++;
   }

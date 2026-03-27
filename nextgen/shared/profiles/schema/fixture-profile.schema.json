@@ -16,8 +16,8 @@
       "additionalProperties": false,
       "required": ["pan", "tilt"],
       "properties": {
-        "pan": { "$ref": "#/$defs/channel16Required" },
-        "tilt": { "$ref": "#/$defs/channel16Required" },
+        "pan": { "$ref": "#/$defs/channel16PanTilt" },
+        "tilt": { "$ref": "#/$defs/channel16PanTilt" },
         "intensity": { "$ref": "#/$defs/channel8Optional" },
         "iris": { "$ref": "#/$defs/channel8Optional" },
         "zoom": { "$ref": "#/$defs/channel8Optional" },
@@ -25,6 +25,18 @@
         "shutter": { "$ref": "#/$defs/channel8Optional" },
         "color": { "$ref": "#/$defs/channel8Optional" }
       }
+    },
+    "logical_mappings": {
+      "description": "Optional flexible mapping block for sparse/high-channel fixtures.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [{ "$ref": "#/$defs/channel8Optional" }, { "$ref": "#/$defs/channel16Required" }]
+      }
+    },
+    "unsupported_controls": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
     },
     "defaults": {
       "type": "object",
@@ -35,7 +47,19 @@
         "zoom": { "type": "integer", "minimum": 0, "maximum": 255 },
         "focus": { "type": "integer", "minimum": 0, "maximum": 255 },
         "shutter": { "type": "integer", "minimum": 0, "maximum": 255 },
-        "color": { "type": "integer", "minimum": 0, "maximum": 255 }
+        "color": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "channel_values": {
+          "description": "Optional static defaults for arbitrary DMX channels (1-based index keys as strings).",
+          "type": "object",
+          "patternProperties": {
+            "^(?:[1-9]|[1-9][0-9]|[1-4][0-9]{2}|5[0-1][0-9]|512)$": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "additionalProperties": false
+        }
       }
     }
   },
@@ -72,6 +96,18 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["coarse", "fine"],
+      "properties": {
+        "coarse": { "type": "integer", "minimum": 1, "maximum": 512 },
+        "fine": { "type": "integer", "minimum": 1, "maximum": 512 },
+        "invert": { "type": "boolean" },
+        "limits": { "$ref": "#/$defs/limits16" }
+      }
+    },
+    "channel16PanTilt": {
+      "description": "Pan/tilt mapping: coarse is required; fine is optional (omit for 8-bit mode).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coarse"],
       "properties": {
         "coarse": { "type": "integer", "minimum": 1, "maximum": 512 },
         "fine": { "type": "integer", "minimum": 1, "maximum": 512 },

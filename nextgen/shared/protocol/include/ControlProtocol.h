@@ -6,8 +6,12 @@ namespace sightline_v2 {
 
 struct AbstractControls {
   bool hasPan = false;
+  // Canonical pan/tilt are 16-bit values: 0..65535 (65536 total steps).
+  uint16_t pan16 = 32768;
+  // Legacy normalized alias for compatibility with older callers.
   float pan = 0.5f;
   bool hasTilt = false;
+  uint16_t tilt16 = 32768;
   float tilt = 0.5f;
   bool hasIntensity = false;
   uint8_t intensity = 0;
